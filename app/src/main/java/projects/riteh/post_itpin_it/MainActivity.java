@@ -5,9 +5,17 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
+
+    private int[] tabIcons = {
+            R.drawable.star,
+            R.drawable.note,
+            R.drawable.reminder
+    };
+
     private TabAdapter adapter;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,5 +28,9 @@ public class MainActivity extends AppCompatActivity {
         adapter.addFragment(new Tab3Fragment(), "Tab 3");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
+        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
+        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
     }
 }
