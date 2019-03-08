@@ -1,25 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity" android:orientation="vertical">
+        tools:context=".MainActivity" android:id="@+id/parent_layout">
 
-    <LinearLayout
-            android:orientation="vertical"
+    <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        <CheckBox
-                android:text="CheckBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/checkBox"/>
+            android:layout_height="match_parent" android:id="@+id/pozadinski_layout">
         <Button
-                android:id="@+id/button"
+                android:text="New post"
+                android:id="@+id/openOverlayBtn"
+                android:layout_alignParentBottom="true" android:layout_marginBottom="19dp" android:layout_width="158dp"
+                android:layout_height="wrap_content" android:layout_alignParentEnd="true"/>
+        <ImageView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Button" />
-    </LinearLayout>
+                android:layout_height="match_parent"
+                android:id="@+id/blue_background" android:background="@android:color/holo_blue_bright"/>
+    </RelativeLayout>
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:id="@+id/overlay_layout"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" android:visibility="invisible">
+        <RelativeLayout
+                android:layout_width="269dp"
+                android:layout_height="288dp"
+                android:layout_centerHorizontal="true" android:layout_alignParentTop="true"
+                android:layout_marginTop="91dp" android:id="@+id/postItLayout" android:clickable="true">
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/orange_object" android:layout_centerHorizontal="true"
+                    android:layout_alignParentTop="true" android:layout_marginTop="0dp"
+                    android:background="#fed76c"/>
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="263dp" android:layout_centerHorizontal="true"
+                    android:layout_alignParentTop="true" android:layout_marginTop="0dp" android:id="@+id/textInputArea">
 
-</LinearLayout>
+                <android.support.design.widget.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="251dp"
+                />
+            </android.support.design.widget.TextInputLayout>
+            <CheckBox
+                    android:text="Reminder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/reminderCheckBox" android:layout_alignParentStart="true"
+                    android:layout_alignParentBottom="true"/>
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>
