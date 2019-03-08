@@ -1,14 +1,15 @@
 package projects.riteh.post_itpin_it;
 
-import android.graphics.Color;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.ViewOverlay;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -29,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final TextInputEditText editedPostitNote = findViewById(R.id.textInputEditedTextPostitNote);
+        final ImageButton confirmButton = findViewById(R.id.imageButtonConfirm);
         final Button displayButton = findViewById(R.id.openOverlayBtn);
         final RelativeLayout overlay = findViewById(R.id.overlay_layout);
         final LinearLayout background_overlay = findViewById(R.id.pozadinski_layout);
@@ -56,6 +59,18 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
                 overlay.setVisibility(View.INVISIBLE);
                 background_overlay.setAlpha(1);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                overlay.setVisibility(View.INVISIBLE);
+                background_overlay.setAlpha(1);
+                editedPostitNote.setText("");
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
             }
         });
     }
