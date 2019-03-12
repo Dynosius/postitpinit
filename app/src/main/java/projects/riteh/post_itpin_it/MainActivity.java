@@ -8,10 +8,8 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.*;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         final Button displayButton = findViewById(R.id.openOverlayBtn);
         final RelativeLayout overlay = findViewById(R.id.overlay_layout);
         final LinearLayout background_overlay = findViewById(R.id.pozadinski_layout);
+        final CheckBox reminderCheckBox = findViewById(R.id.reminderCheckBox);
+
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
