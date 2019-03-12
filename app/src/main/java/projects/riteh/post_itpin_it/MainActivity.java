@@ -19,7 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity /*implements View.OnTouchListener*/{
+public class MainActivity extends AppCompatActivity implements View.OnTouchListener{
 
     private int[] tabIcons = {
             R.drawable.star,
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity /*implements View.OnTouchLis
     int windowheight;
     private ImageView mImageView;
     private RelativeLayout mRrootLayout;
+    private RelativeLayout viewToMove;
     private int _xDelta;
     private int _yDelta;
 
@@ -49,16 +50,19 @@ public class MainActivity extends AppCompatActivity /*implements View.OnTouchLis
         final RelativeLayout overlay = findViewById(R.id.overlay_layout);
         final LinearLayout background_overlay = findViewById(R.id.pozadinski_layout);
 
-    /*    mRrootLayout = overlay;
-        mImageView = (ImageView) mRrootLayout.findViewById(R.id.orange_object);
-        mImageView.setOnTouchListener(this);
+        mRrootLayout = overlay;
+        // mImageView = (ImageView) mRrootLayout.findViewById(R.id.orange_object);
+        // mImageView.setOnTouchListener(this);
+
+        viewToMove = (RelativeLayout) findViewById(R.id.postItLayout);
+        viewToMove.setOnTouchListener(this);
         mRrootLayout.post(new Runnable() {
             @Override
             public void run() {
                 windowwidth = mRrootLayout.getWidth();
                 windowheight = mRrootLayout.getHeight();
             }
-        });*/
+        });
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity /*implements View.OnTouchLis
             }
         });
     }
-/*
+
     private boolean isOutReported = false;
 
     public boolean onTouch(View view, MotionEvent event) {
@@ -166,5 +170,5 @@ public class MainActivity extends AppCompatActivity /*implements View.OnTouchLis
                 (view.getRight() - windowwidth) > viewPctWidth ||
                 (-view.getTop() >= viewPctHeight) ||
                 (view.getBottom() - windowheight) > viewPctHeight);
-    }*/
+    }
 }

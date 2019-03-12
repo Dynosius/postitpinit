@@ -50,7 +50,7 @@
                 android:layout_centerHorizontal="true" android:layout_alignParentTop="true"
                 android:layout_marginTop="91dp" android:id="@+id/postItLayout" android:clickable="true">
 
-            <ScaleImageView
+            <ImageView
                 android:id="@+id/orange_object"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
