@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private PostViewModel mPostViewModel;
-    private PostViewAdapter postAdapter;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,17 +88,6 @@ public class MainActivity extends AppCompatActivity {
                 editedPostitNote.setText("");
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            }
-        });
-
-        RecyclerView recyclerView = findViewById(R.id.recyclerview);
-        postAdapter = new PostViewAdapter(this, mPostViewModel);
-        recyclerView.setAdapter(postAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mPostViewModel.getAllPosts().observe(this, new Observer<List<Post>>() {
-            @Override
-            public void onChanged(@Nullable List<Post> posts) {
-                postAdapter.setPosts(posts);
             }
         });
     }
