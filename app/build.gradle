@@ -4,12 +4,17 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "projects.riteh.post_itpin_it"
-        buildToolsVersion "28.0.3"
+        buildToolsVersion "28"
         minSdkVersion 15
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
     buildTypes {
         release {
