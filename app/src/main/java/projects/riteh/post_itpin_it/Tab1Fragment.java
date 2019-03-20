@@ -17,12 +17,13 @@ import java.util.List;
 
 public class Tab1Fragment extends Fragment {
     private PostViewModel mPostViewModel;
+    private PostViewAdapter postAdapter;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_one, container, false);
         RecyclerView recyclerView = view.findViewById(R.id.recyclerview);
         mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
-        final PostViewAdapter postAdapter = new PostViewAdapter(getActivity(), mPostViewModel);
+        postAdapter = new PostViewAdapter(getActivity(), mPostViewModel, (MainActivity)getActivity());
         recyclerView.setAdapter(postAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mPostViewModel.getAllPosts().observe(this, new Observer<List<Post>>() {

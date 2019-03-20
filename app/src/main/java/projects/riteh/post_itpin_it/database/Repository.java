@@ -26,6 +26,7 @@ public class Repository {
         new insertAsyncTask(mPostDao).execute(post);
     }
     public void delete(Post post) { new deleteAsyncTask(mPostDao).execute(post); }
+    public void update(Post post) { new updateAsyncTask(mPostDao).execute(post); }
 
     // For multithreading/asynchronous work
     private static class insertAsyncTask extends AsyncTask<Post, Void, Void> {
@@ -52,6 +53,19 @@ public class Repository {
         @Override
         protected Void doInBackground(final Post... params) {
             mAsyncTaskDao.delete(params[0]);
+            return null;
+        }
+    }
+    private static class updateAsyncTask extends AsyncTask<Post, Void, Void> {
+        private PostDAO mAsyncTaskDao;
+
+        updateAsyncTask(PostDAO dao) {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(final Post... params) {
+            mAsyncTaskDao.update(params[0]);
             return null;
         }
     }

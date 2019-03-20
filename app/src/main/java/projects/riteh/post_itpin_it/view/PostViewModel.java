@@ -27,8 +27,11 @@ public class PostViewModel extends AndroidViewModel {
     public void insert(Post post) {
         mRepository.insert(post);
     }
-
+    public void update(Post post) { mRepository.update(post);
+    }
     public Repository getmRepository() {
         return mRepository;
     }
+
+
 }
