@@ -8,15 +8,11 @@ import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import projects.riteh.post_itpin_it.database.Post;
-import projects.riteh.post_itpin_it.view.PostViewAdapter;
 import projects.riteh.post_itpin_it.view.PostViewModel;
-
-import java.io.IOError;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         // Represents the NEW POST button
         displayButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                clearPostIt();
                 currentState = PostStates.CREATE_POST_MODE;
                 overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
@@ -105,9 +102,7 @@ public class MainActivity extends AppCompatActivity {
         // Represents the save button on the post it dialog
         confirmButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
                 if(currentState.equals(PostStates.CREATE_POST_MODE)){
-                    clearPostIt();
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
