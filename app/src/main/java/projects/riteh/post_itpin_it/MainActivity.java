@@ -122,6 +122,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Clears the display on the screen
+     *
+     */
     private void clearPostIt() {
         editedPostitNote.setText("");
         reminderCheckBox.setChecked(false);
@@ -131,6 +135,11 @@ public class MainActivity extends AppCompatActivity {
         this.currentState = currentState;
     }
 
+    /**
+     * Takes a Post object as a parameter. Opens the post-it editor overlay and passes it the information from the Post
+     * parameter.
+     * @param post
+     */
     public void editPostIt(Post post){
         overlay.setVisibility(View.VISIBLE);
         background_overlay.setAlpha(0.2f);

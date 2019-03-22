@@ -37,7 +37,7 @@ public abstract class PostDatabase extends RoomDatabase {
         PopulateDbAsync(PostDatabase db){
             postDao = db.postDAO();
         }
-        //TODO: Implementirati sto se dogodi nakon otvaranja aplikacije s databaseom
+        // Here we can implement certain actions that we may wish to occur after opening the application
         @Override
         protected Void doInBackground(final Void... voids) {
             return null;
