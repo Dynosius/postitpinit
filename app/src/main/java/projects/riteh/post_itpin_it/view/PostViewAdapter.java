@@ -12,6 +12,7 @@ import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.database.Post;
 import projects.riteh.post_itpin_it.database.Repository;
 import java.io.IOError;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostViewHolder>{
@@ -20,6 +21,7 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
     private List<Post> mPosts; // Cache
     private Repository repo;
     private MainActivity activity;
+    private List<Post> pinnedPostList;
 
     public PostViewAdapter(Context context, PostViewModel viewModel, MainActivity activity) {
         mInflater = LayoutInflater.from(context);
@@ -51,6 +53,14 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
 
     public void setPosts(List<Post> posts){
         mPosts = posts;
+        pinnedPostList = new ArrayList<>();
+        for (Post postIter:posts) {
+            if(postIter.isReminder()){
+                pinnedPostList.add(postIter);
+                activity.createNotification(postIter);
+            }
+        }
+        activity.setPinnedPosts(pinnedPostList);
         notifyDataSetChanged();
     }
     // HOLDER CLASS
@@ -78,8 +88,9 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
         @Override
         public boolean onLongClick(View v) {
             try{
-                repo.delete(repo.getmAllPosts().getValue().get(getLayoutPosition()));  // Attempts to delete the i-th
-                // element in the LiveData list from DB
+                Post post = repo.getmAllPosts().getValue().get(getLayoutPosition());
+                activity.getNotificationManagerCompat().cancel(post.getId());   // Delete the notification
+                repo.delete(post);  // Attempts to delete the i-th element in the LiveData list from DB
                 Snackbar snackbar = Snackbar.make(v, "Message deleted", Snackbar.LENGTH_SHORT);
                 snackbar.show();
             } catch(IOError e){

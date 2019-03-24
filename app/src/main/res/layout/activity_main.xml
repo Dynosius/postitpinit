@@ -87,11 +87,19 @@
                         android:layout_height="wrap_content"
                         app:srcCompat="@android:drawable/ic_menu_save" />
 
+                    <ImageButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:srcCompat="@drawable/fiber_pin"
+                            android:id="@+id/imageButton"
+                            android:layout_weight="1"/>
+
                     <CheckBox
                         android:id="@+id/reminderCheckBox"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Reminder" />
+
                 </LinearLayout>
 
             </LinearLayout>
