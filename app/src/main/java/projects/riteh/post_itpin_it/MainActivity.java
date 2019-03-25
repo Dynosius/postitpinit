@@ -171,6 +171,9 @@ public class MainActivity extends AppCompatActivity {
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
         notificationManagerCompat.notify(post.getId(), notification);
     }
+    public void cancelNotifications(){
+        notificationManagerCompat.cancelAll();
+    }
 
     /**
      * Clears the display on the screen

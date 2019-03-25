@@ -22,6 +22,7 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
     private Repository repo;
     private MainActivity activity;
     private List<Post> pinnedPostList;
+    private Post post;
 
     public PostViewAdapter(Context context, PostViewModel viewModel, MainActivity activity) {
         mInflater = LayoutInflater.from(context);
@@ -54,13 +55,13 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
     public void setPosts(List<Post> posts){
         mPosts = posts;
         pinnedPostList = new ArrayList<>();
+        activity.cancelNotifications();
         for (Post postIter:posts) {
             if(postIter.isReminder()){
                 pinnedPostList.add(postIter);
                 activity.createNotification(postIter);
             }
         }
-        activity.setPinnedPosts(pinnedPostList);
         notifyDataSetChanged();
     }
     // HOLDER CLASS
@@ -88,10 +89,16 @@ public class PostViewAdapter extends RecyclerView.Adapter<PostViewAdapter.PostVi
         @Override
         public boolean onLongClick(View v) {
             try{
-                Post post = repo.getmAllPosts().getValue().get(getLayoutPosition());
+                post = repo.getmAllPosts().getValue().get(getLayoutPosition());
                 activity.getNotificationManagerCompat().cancel(post.getId());   // Delete the notification
                 repo.delete(post);  // Attempts to delete the i-th element in the LiveData list from DB
-                Snackbar snackbar = Snackbar.make(v, "Message deleted", Snackbar.LENGTH_SHORT);
+                Snackbar snackbar = Snackbar.make(v, "Message deleted", Snackbar.LENGTH_SHORT)
+                        .setAction("Undo", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                repo.insert(post);
+                            }
+                        });
                 snackbar.show();
             } catch(IOError e){
                 System.out.print(e);
