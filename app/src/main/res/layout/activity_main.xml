@@ -17,6 +17,8 @@
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
                   android:orientation="vertical" android:id="@+id/pozadinski_layout">
+        <include android:layout_width="match_parent" android:layout_height="wrap_content"
+                 layout="@layout/content_main"/>
         <include layout="@layout/app_bar"/>
 
         <android.support.design.widget.TabLayout
@@ -86,10 +88,11 @@
                         app:srcCompat="@android:drawable/ic_menu_save" />
 
                     <CheckBox
-                        android:id="@+id/reminderCheckBox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Reminder" />
+                            android:id="@+id/reminderCheckBox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Reminder"/>
+
                 </LinearLayout>
 
             </LinearLayout>
