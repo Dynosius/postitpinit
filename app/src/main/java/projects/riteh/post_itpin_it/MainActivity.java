@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManagerCompat notificationManagerCompat;
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
+    private boolean keyboardShown = false;
 
     public NotificationManagerCompat getNotificationManagerCompat() {
         return notificationManagerCompat;
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         displayButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 clearPostIt();
+                keyboardShown = true;
                 currentState = PostStates.CREATE_POST_MODE;
                 overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
@@ -114,18 +116,22 @@ public class MainActivity extends AppCompatActivity {
                 background_overlay.setAlpha(1);
 
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                keyboardShown = false;
             }
         });
 
         // Represents the TextView on the NEW POST screen/overlay
         editedPostitNote.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                if (imm.isActive()){
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                if(!keyboardShown){
+                    imm.showSoftInput(v, 0);
+                    keyboardShown = true;
                 }
                 else{
-                    imm.showSoftInput(v, 0);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    keyboardShown = false;
                 }
+
             }
         });
 
