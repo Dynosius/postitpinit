@@ -14,6 +14,11 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.RotateAnimation;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import projects.riteh.post_itpin_it.database.Post;
@@ -106,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 currentState = PostStates.CREATE_POST_MODE;
                 overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
+                spinShowPostIt();
             }
         });
 
@@ -114,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
                 overlay.setVisibility(View.INVISIBLE);
                 background_overlay.setAlpha(1);
+
+                //spinHidePostIt();
 
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 keyboardShown = false;
@@ -149,7 +157,10 @@ public class MainActivity extends AppCompatActivity {
                     selectedPost.setReminder(reminderCheckBox.isChecked());
                     mPostViewModel.update(selectedPost);
                 }
-                overlay.setVisibility(View.INVISIBLE);
+
+                spinHidePostIt();
+
+                //overlay.setVisibility(View.INVISIBLE);
                 background_overlay.setAlpha(1);
                 editedPostitNote.setText("");
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -208,5 +219,44 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSelectedPost(Post selectedPost) {
         this.selectedPost = selectedPost;
+    }
+
+    private void spinShowPostIt() {
+
+        View animatedView = findViewById(R.id.postItLayout);
+        RotateAnimation rotate
+                = new RotateAnimation(0.0f, 1080.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        ScaleAnimation scale
+                = new ScaleAnimation(0.0f, 1.0f, 0.0f, 1.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        AlphaAnimation alpha = new AlphaAnimation(0.0f, 1.0f);
+        AnimationSet set = new AnimationSet(true);
+        set.addAnimation(rotate);
+        set.addAnimation(scale);
+        set.addAnimation(alpha);
+        set.setDuration(2000);
+        animatedView.startAnimation(set);
+    }
+
+    private void spinHidePostIt() {
+        View animatedView = findViewById(R.id.postItLayout);
+        RotateAnimation rotate
+                = new RotateAnimation(0.0f, 1080.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        ScaleAnimation scale
+                = new ScaleAnimation(1.0f, 0.0f, 1.0f, 0.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        AlphaAnimation alpha = new AlphaAnimation(0.0f, 1.0f);
+        AnimationSet set = new AnimationSet(true);
+        set.addAnimation(rotate);
+        set.addAnimation(scale);
+        set.addAnimation(alpha);
+        set.setDuration(2000);
+        animatedView.startAnimation(set);
     }
 }
