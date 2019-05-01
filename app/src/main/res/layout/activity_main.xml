@@ -81,12 +81,6 @@
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
 
-                    <ImageButton
-                        android:id="@+id/imageButtonConfirm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:srcCompat="@android:drawable/ic_menu_save" />
-
                     <CheckBox
                             android:id="@+id/reminderCheckBox"
                             android:layout_width="wrap_content"
