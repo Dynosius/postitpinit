@@ -1,6 +1,8 @@
 package projects.riteh.post_itpin_it;
 
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.arch.lifecycle.ViewModelProviders;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Post> pinnedPosts;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
+    private View postitLayout;
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
     private boolean keyboardShown = false;
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         overlay = findViewById(R.id.overlay_layout);
         background_overlay = findViewById(R.id.pozadinski_layout);
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
+        postitLayout = findViewById(R.id.postItLayout);
 
         pinnedPosts = new ArrayList<>();
         mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
@@ -109,19 +113,21 @@ public class MainActivity extends AppCompatActivity {
                 clearPostIt();
                 keyboardShown = true;
                 currentState = PostStates.CREATE_POST_MODE;
-                overlay.setVisibility(View.VISIBLE);
+                //overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
                 spinShowPostIt();
+
             }
         });
 
         // Represents the NEW POST screen/overlay
         overlay.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                overlay.setVisibility(View.INVISIBLE);
-                background_overlay.setAlpha(1);
+                //overlay.setVisibility(View.INVISIBLE);
+                // background_overlay.setAlpha(1);
 
-                //spinHidePostIt();
+                spinHidePostIt();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 keyboardShown = false;
@@ -131,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
         // Represents the TextView on the NEW POST screen/overlay
         editedPostitNote.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
                 if(!keyboardShown){
                     imm.showSoftInput(v, 0);
                     keyboardShown = true;
@@ -151,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
                     mPostViewModel.insert(post);
-
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
@@ -199,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
     private void clearPostIt() {
         editedPostitNote.setText("");
         reminderCheckBox.setChecked(false);
+        postitLayout.setRotation(-360.0f);
     }
 
     public void setCurrentState(PostStates currentState) {
@@ -213,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
     public void editPostIt(Post post){
         overlay.setVisibility(View.VISIBLE);
         background_overlay.setAlpha(0.2f);
+        spinShowPostIt();
         editedPostitNote.setText(post.getPostText());
         reminderCheckBox.setChecked(post.isReminder());
     }
@@ -222,41 +231,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void spinShowPostIt() {
-
-        View animatedView = findViewById(R.id.postItLayout);
-        RotateAnimation rotate
-                = new RotateAnimation(0.0f, 1080.0f,
-                Animation.RELATIVE_TO_SELF, 0.5f,
-                Animation.RELATIVE_TO_SELF, 0.5f);
-        ScaleAnimation scale
-                = new ScaleAnimation(0.0f, 1.0f, 0.0f, 1.0f,
-                Animation.RELATIVE_TO_SELF, 0.5f,
-                Animation.RELATIVE_TO_SELF, 0.5f);
-        AlphaAnimation alpha = new AlphaAnimation(0.0f, 1.0f);
-        AnimationSet set = new AnimationSet(true);
-        set.addAnimation(rotate);
-        set.addAnimation(scale);
-        set.addAnimation(alpha);
-        set.setDuration(2000);
-        animatedView.startAnimation(set);
+        final View overlay = findViewById(R.id.overlay_layout);
+        overlay.setVisibility(View.VISIBLE);
+        postitLayout.setVisibility(View.VISIBLE);
+        //System.out.println(postitLayout.getRotation());
+        postitLayout.animate()
+             //   .scaleXBy(0.5f)
+             //   .scaleYBy(0.5f)
+                .alpha(1.0f)
+                .rotation(360.0f)
+                .setDuration(500)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        postitLayout.setVisibility(View.VISIBLE);
+                        overlay.setVisibility(View.VISIBLE);
+                    }
+                });
+        //System.out.println(postitLayout.getRotation());
     }
 
     private void spinHidePostIt() {
-        View animatedView = findViewById(R.id.postItLayout);
-        RotateAnimation rotate
-                = new RotateAnimation(0.0f, 1080.0f,
-                Animation.RELATIVE_TO_SELF, 0.5f,
-                Animation.RELATIVE_TO_SELF, 0.5f);
-        ScaleAnimation scale
-                = new ScaleAnimation(1.0f, 0.0f, 1.0f, 0.0f,
-                Animation.RELATIVE_TO_SELF, 0.5f,
-                Animation.RELATIVE_TO_SELF, 0.5f);
-        AlphaAnimation alpha = new AlphaAnimation(0.0f, 1.0f);
-        AnimationSet set = new AnimationSet(true);
-        set.addAnimation(rotate);
-        set.addAnimation(scale);
-        set.addAnimation(alpha);
-        set.setDuration(2000);
-        animatedView.startAnimation(set);
+        final View overlay = findViewById(R.id.overlay_layout);
+        postitLayout.animate()
+         //       .scaleXBy(0.0f)
+         //       .scaleYBy(0.0f)
+                .alpha(0.0f)
+                .rotation(-360.0f)
+                .setDuration(500)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        postitLayout.setVisibility(View.INVISIBLE);
+                        overlay.setVisibility(View.GONE);
+                        background_overlay.setAlpha(1);
+                    }
+                });
     }
 }
