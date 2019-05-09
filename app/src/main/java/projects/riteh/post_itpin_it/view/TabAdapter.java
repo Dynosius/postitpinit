@@ -1,4 +1,4 @@
-package projects.riteh.post_itpin_it;
+package projects.riteh.post_itpin_it.view;
 
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;

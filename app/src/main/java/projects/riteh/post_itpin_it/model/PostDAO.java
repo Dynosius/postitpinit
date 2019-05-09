@@ -1,4 +1,4 @@
-package projects.riteh.post_itpin_it.database;
+package projects.riteh.post_itpin_it.model;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.*;
@@ -10,6 +10,12 @@ public interface PostDAO {
 
     @Query("SELECT * FROM Post")
     LiveData<List<Post>> getAll();
+
+    @Query("SELECT * FROM Post WHERE isReminder='1'")
+    LiveData<List<Post>> getAllPinned();
+
+    @Query("SELECT * FROM Post WHERE isReminder='0'")
+    LiveData<List<Post>> getAllUnpinned();
 
     @Query("SELECT COUNT(*) FROM Post")
     int countUsers();

@@ -1,4 +1,4 @@
-package projects.riteh.post_itpin_it.database;
+package projects.riteh.post_itpin_it.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;

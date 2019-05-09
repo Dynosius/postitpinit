@@ -1,13 +1,16 @@
-package projects.riteh.post_itpin_it;
+package projects.riteh.post_itpin_it.view;
 
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
@@ -23,8 +26,9 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
-import projects.riteh.post_itpin_it.database.Post;
-import projects.riteh.post_itpin_it.view.PostViewModel;
+import projects.riteh.post_itpin_it.R;
+import projects.riteh.post_itpin_it.model.Post;
+import projects.riteh.post_itpin_it.controller.PostsViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,20 +49,19 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private Tab1Fragment tab1;
     private ViewPager viewPager;
-    private PostViewModel mPostViewModel;
+    private PostsViewModel mPostsViewModel;
     private InputMethodManager imm;
     private TextInputEditText editedPostitNote;
-    private ImageButton confirmButton;
     private Button displayButton;
     private RelativeLayout overlay;
     private LinearLayout background_overlay;
     private CheckBox reminderCheckBox;
     private PostStates currentState = PostStates.CREATE_POST_MODE;
     private Post selectedPost;
-    private List<Post> pinnedPosts;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
     private View postitLayout;
+    private NotificationManager notificationManager;
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
     private boolean keyboardShown = false;
@@ -67,37 +70,29 @@ public class MainActivity extends AppCompatActivity {
         return notificationManagerCompat;
     }
 
-    public List<Post> getPinnedPosts() {
-        return pinnedPosts;
-    }
-    public void setPinnedPosts(List<Post> posts){
-        this.pinnedPosts = posts;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        createNotificationChannel();
         intentInit();
-
         notificationManagerCompat = NotificationManagerCompat.from(this);
         editedPostitNote = findViewById(R.id.textInputEditedTextPostitNote);
-        confirmButton = findViewById(R.id.imageButtonConfirm);
         displayButton = findViewById(R.id.openOverlayBtn);
         overlay = findViewById(R.id.overlay_layout);
         background_overlay = findViewById(R.id.pozadinski_layout);
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
         postitLayout = findViewById(R.id.postItLayout);
 
-        pinnedPosts = new ArrayList<>();
-        mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
+        mPostsViewModel = ViewModelProviders.of(this).get(PostsViewModel.class);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        tab1 = new Tab1Fragment();
+        tab1 = new Tab1Fragment(R.layout.fragment_one);
         adapter.addFragment(tab1, "Tab 1");
-        adapter.addFragment(new Tab2Fragment(), "Tab 2");
+        adapter.addFragment(new Tab2Fragment(R.layout.fragment_two), "Tab 2");
         adapter.addFragment(new Tab3Fragment(), "Tab 3");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -120,15 +115,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Represents the NEW POST screen/overlay
+        // This is what fires off when you click outside of the post area
         overlay.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                //overlay.setVisibility(View.INVISIBLE);
-                // background_overlay.setAlpha(1);
+                if(currentState.equals(PostStates.CREATE_POST_MODE)){
+                    Post post = new Post();
+                    post.setPostText(editedPostitNote.getText().toString());
+                    post.setReminder(reminderCheckBox.isChecked());
+                    mPostsViewModel.insert(post);
 
+                } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
+                    selectedPost.setPostText(editedPostitNote.getText().toString());
+                    selectedPost.setReminder(reminderCheckBox.isChecked());
+                    mPostsViewModel.update(selectedPost);
+                }
+                background_overlay.setAlpha(1);
                 spinHidePostIt();
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
+                editedPostitNote.setText("");
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 keyboardShown = false;
             }
@@ -150,31 +154,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        // Represents the save button on the post it dialog
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(currentState.equals(PostStates.CREATE_POST_MODE)){
-                    Post post = new Post();
-                    post.setPostText(editedPostitNote.getText().toString());
-                    post.setReminder(reminderCheckBox.isChecked());
-                    mPostViewModel.insert(post);
-                } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
-                    selectedPost.setPostText(editedPostitNote.getText().toString());
-                    selectedPost.setReminder(reminderCheckBox.isChecked());
-                    mPostViewModel.update(selectedPost);
-                }
-
-                spinHidePostIt();
-
-                //overlay.setVisibility(View.INVISIBLE);
-                background_overlay.setAlpha(1);
-                editedPostitNote.setText("");
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            }
-        });
     }
+
+    // Initialization methods and notification channels
+
+
     // This enables opening of the application with clicking on the notification
     private void intentInit() {
         intent = new Intent(this, MainActivity.class);
@@ -184,14 +168,9 @@ public class MainActivity extends AppCompatActivity {
     // Method for creating a notification
     // TODO: Maybe create a specific class with its own interface for different types of reminders (event, general reminder)
     public void createNotification(Post post){
-        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.baseline_date_range)
-                .setContentTitle("Reminder " + post.getId())
+        Notification notification = notificationBuilder.setContentTitle("Reminder")
                 .setContentText(post.getPostText())
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentIntent(pendingIntent)
-                .setGroup(GROUP_NAME);
-        Notification notification = notificationBuilder.build();
+                .build();
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
         notificationManagerCompat.notify(post.getId(), notification);
     }
@@ -226,6 +205,21 @@ public class MainActivity extends AppCompatActivity {
         reminderCheckBox.setChecked(post.isReminder());
     }
 
+    /***
+     * Creates a notification channel to handle notification requests and organize them within the Android OS
+     */
+    private void createNotificationChannel(){
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.createNotificationChannel(new NotificationChannel("0", "Default channel"
+                    , NotificationManager.IMPORTANCE_HIGH));
+        }
+        // create notification builder, in case it's on android 7 or lower the channel gets ignored
+        notificationBuilder = new NotificationCompat.Builder(this, "0")
+                .setSmallIcon(R.drawable.baseline_date_range)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setContentIntent(pendingIntent);
+    }
     public void setSelectedPost(Post selectedPost) {
         this.selectedPost = selectedPost;
     }
