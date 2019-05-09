@@ -5,7 +5,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity" android:id="@+id/parent_layout">
+        tools:context=".view.MainActivity" android:id="@+id/parent_layout">
 
     <Button
             android:text="New post"
@@ -17,8 +17,6 @@
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
                   android:orientation="vertical" android:id="@+id/pozadinski_layout">
-        <include android:layout_width="match_parent" android:layout_height="wrap_content"
-                 layout="@layout/content_main"/>
         <include layout="@layout/app_bar"/>
 
         <android.support.design.widget.TabLayout

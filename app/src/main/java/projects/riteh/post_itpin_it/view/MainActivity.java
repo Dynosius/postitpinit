@@ -1,4 +1,4 @@
-package projects.riteh.post_itpin_it;
+package projects.riteh.post_itpin_it.view;
 
 
 import android.app.Notification;
@@ -19,8 +19,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
-import projects.riteh.post_itpin_it.database.Post;
-import projects.riteh.post_itpin_it.view.PostViewModel;
+import projects.riteh.post_itpin_it.R;
+import projects.riteh.post_itpin_it.model.Post;
+import projects.riteh.post_itpin_it.controller.PostsViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private Tab1Fragment tab1;
     private ViewPager viewPager;
-    private PostViewModel mPostViewModel;
+    private PostsViewModel mPostsViewModel;
     private InputMethodManager imm;
     private TextInputEditText editedPostitNote;
     private ImageButton confirmButton;
@@ -84,14 +85,14 @@ public class MainActivity extends AppCompatActivity {
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
 
         pinnedPosts = new ArrayList<>();
-        mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
+        mPostsViewModel = ViewModelProviders.of(this).get(PostsViewModel.class);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        tab1 = new Tab1Fragment();
+        tab1 = new Tab1Fragment(R.layout.fragment_one);
         adapter.addFragment(tab1, "Tab 1");
-        adapter.addFragment(new Tab2Fragment(), "Tab 2");
+        adapter.addFragment(new Tab2Fragment(R.layout.fragment_two), "Tab 2");
         adapter.addFragment(new Tab3Fragment(), "Tab 3");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -119,12 +120,12 @@ public class MainActivity extends AppCompatActivity {
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
-                    mPostViewModel.insert(post);
+                    mPostsViewModel.insert(post);
 
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
-                    mPostViewModel.update(selectedPost);
+                    mPostsViewModel.update(selectedPost);
                 }
                 overlay.setVisibility(View.INVISIBLE);
                 background_overlay.setAlpha(1);
