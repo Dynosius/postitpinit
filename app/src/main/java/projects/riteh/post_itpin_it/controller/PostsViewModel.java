@@ -1,28 +1,34 @@
-package projects.riteh.post_itpin_it.view;
+package projects.riteh.post_itpin_it.controller;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
-import projects.riteh.post_itpin_it.database.Post;
-import projects.riteh.post_itpin_it.database.Repository;
+import projects.riteh.post_itpin_it.model.Post;
+import projects.riteh.post_itpin_it.model.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
-
-public class PostViewModel extends AndroidViewModel {
+// This class is actually controller??
+public class PostsViewModel extends AndroidViewModel {
 
     private Repository mRepository;
-    private LiveData<List<Post>> mAllPosts;
+    private LiveData<List<Post>> mAllPosts, mPinnedPosts, mUnpinnedPosts;
 
-    public PostViewModel(@NonNull Application application) {
+    public PostsViewModel(@NonNull Application application) {
         super(application);
         mRepository = new Repository(application);
         mAllPosts = mRepository.getmAllPosts();
+        mPinnedPosts = mRepository.getAllPinned();
+        mUnpinnedPosts = mRepository.getAllUnpinned();
+
     }
 
     public LiveData<List<Post>> getAllPosts() {
         return mAllPosts;
     }
+    public LiveData<List<Post>> getAllPinned() { return mPinnedPosts; }
+    public LiveData<List<Post>> getAllUnpinned() { return mUnpinnedPosts; }
 
     public void insert(Post post) {
         mRepository.insert(post);
