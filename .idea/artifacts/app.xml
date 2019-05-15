@@ -1,0 +1,22 @@
+<component name="ArtifactManager">
+  <artifact type="apk" name="app">
+    <output-path>$PROJECT_DIR$/build/classes/artifacts/app</output-path>
+    <properties id="android-properties">
+      <options>
+        <option name="keyAlias" value="initial_key" />
+        <option name="keyPassword" value="a2luZ3BpbjEyMg==" />
+        <option name="keyStorePassword" value="a2luZ3BpbjEyMg==" />
+        <option name="keyStoreUrl" value="file://$PROJECT_DIR$/KEY_STORE/key_store.jks" />
+        <option name="proGuardCfgFiles">
+          <list>
+            <option value="file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt" />
+          </list>
+        </option>
+        <option name="signingMode" value="RELEASE_SIGNED" />
+      </options>
+    </properties>
+    <root id="archive" name="app.apk">
+      <element id="android-final-package" facet="app/android/Android" />
+    </root>
+  </artifact>
+</component>
