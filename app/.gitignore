@@ -9,3 +9,5 @@
 /captures
 .externalNativeBuild
 google-services.json
+.idea/
+/.idea/
