@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
     public void createNotification(Post post){
         Notification notification = notificationBuilder.setContentTitle("Reminder")
                 .setContentText(post.getPostText())
+                .setContentIntent(pendingIntent)
                 .build();
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
         notificationManagerCompat.notify(post.getId(), notification);
