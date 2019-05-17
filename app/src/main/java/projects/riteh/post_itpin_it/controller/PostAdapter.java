@@ -3,14 +3,18 @@ package projects.riteh.post_itpin_it.controller;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
-import projects.riteh.post_itpin_it.view.MainActivity;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.model.Post;
 import projects.riteh.post_itpin_it.model.Repository;
+import projects.riteh.post_itpin_it.view.MainActivity;
+
 import java.io.IOError;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +92,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             try{
                 // Sets post text once it's opened in edit mode
                 // ZASTO TU RADIM QUERY
+
                 activity.editPostIt(mPosts.get(getLayoutPosition()));
             }
             catch(IOError er){
@@ -100,19 +105,27 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             try{
                 post = mPosts.get(getLayoutPosition());
                 activity.getNotificationManagerCompat().cancel(post.getId());   // Delete the notification
-                repo.delete(post);  // Attempts to delete the i-th element in the LiveData list from DB
-                Snackbar snackbar = Snackbar.make(v, "Message deleted", Snackbar.LENGTH_SHORT)
-                        .setAction("Undo", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                repo.insert(post);
-                            }
-                        });
-                snackbar.show();
+                // Delete the post from both firebase and room
+                try{
+                    deletePost(post, v);
+                }
+                catch (Exception e){
+                    System.out.println(e);
+                }
+                finally {
+                    repo.delete(post);  // Attempts to delete the i-th element in the LiveData list from ROOM DB
+                }
             } catch(IOError e){
                 System.out.print(e);
             }
             return true;
+        }
+
+        private void deletePost(final Post post, final View v) {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference postRef = db.collection("posts")
+                    .document(post.getFirestore_id());
+            postRef.delete();
         }
     }
 }

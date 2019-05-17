@@ -31,6 +31,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.controller.PostsViewModel;
 import projects.riteh.post_itpin_it.model.Post;
@@ -72,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
     private boolean keyboardShown = false;
+    // Firebase
     private List<AuthUI.IdpConfig> providers;
     private Button btn_signinout;
 
@@ -112,16 +115,14 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(1).setIcon(tabIcons[1]);
         tabLayout.getTabAt(2).setIcon(tabIcons[2]);
 
-
-        /**
-         * Firebase login initialization
-         *
-         */
         providers = Arrays.asList(
                 //new AuthUI.IdpConfig.EmailBuilder().build(),
                 //new AuthUI.IdpConfig.PhoneBuilder().build(),
                 new AuthUI.IdpConfig.GoogleBuilder().build()
         );
+        /**
+         * Firebase login initialization
+         */
         showSignInOptions();
         // Represents the NEW POST button
         displayButton.setOnClickListener(new View.OnClickListener() {
@@ -143,12 +144,20 @@ public class MainActivity extends AppCompatActivity {
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
+                    // Insert into room database
                     mPostsViewModel.insert(post);
+                    // Insert into firebase database
+                    addPostToFirebase(post);
+                    Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
 
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
                     mPostsViewModel.update(selectedPost);
+                    // Update firebase database
+                    // TODO
+
+                    Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
                 background_overlay.setAlpha(1);
                 spinHidePostIt();
@@ -175,6 +184,24 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    /**
+     * Inserts data from post object to firestore database
+     * @param post
+     */
+    private void addPostToFirebase(Post post) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference ref = db.collection("posts").document();
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        post.setFirestore_id(ref.getId());
+        post.setUser_id(userId);
+        ref.set(post);
+    }
+
+    private void updatePostAtFirebase(Post post) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //db.collection("posts").add(post);
     }
 
     @Override
