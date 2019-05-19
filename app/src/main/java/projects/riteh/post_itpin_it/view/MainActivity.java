@@ -7,7 +7,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -31,11 +30,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 import projects.riteh.post_itpin_it.R;
-import projects.riteh.post_itpin_it.controller.PostsViewModel;
 import projects.riteh.post_itpin_it.model.Post;
+import projects.riteh.post_itpin_it.service.PostService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,9 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private Intent intent;
     private TabAdapter adapter;
     private TabLayout tabLayout;
-    private Tab1Fragment tab1;
+    private PinnedPostFragment pinnedPostFragment;
     private ViewPager viewPager;
-    private PostsViewModel mPostsViewModel;
     private InputMethodManager imm;
     private TextInputEditText editedPostitNote;
     private Button displayButton;
@@ -67,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox reminderCheckBox;
     private PostStates currentState = PostStates.CREATE_POST_MODE;
     private Post selectedPost;
+    private PostService postService;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
     private View postitLayout;
@@ -76,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean keyboardShown = false;
     // Firebase
     private List<AuthUI.IdpConfig> providers;
-    private Button btn_signinout;
+    private Button bbtnSigninout;
 
     public NotificationManagerCompat getNotificationManagerCompat() {
         return notificationManagerCompat;
@@ -98,15 +95,14 @@ public class MainActivity extends AppCompatActivity {
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
         postitLayout = findViewById(R.id.postItLayout);
 
-        btn_signinout = findViewById(R.id.signinout);
-        mPostsViewModel = ViewModelProviders.of(this).get(PostsViewModel.class);
+        bbtnSigninout = findViewById(R.id.signinout);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        tab1 = new Tab1Fragment(R.layout.fragment_one);
-        adapter.addFragment(tab1, "Tab 1");
-        adapter.addFragment(new Tab2Fragment(R.layout.fragment_two), "Tab 2");
+        pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
+        adapter.addFragment(pinnedPostFragment, "Tab 1");
+        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
         adapter.addFragment(new Tab3Fragment(), "Tab 3");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -124,7 +120,13 @@ public class MainActivity extends AppCompatActivity {
          * Firebase login initialization
          */
         showSignInOptions();
-        // Represents the NEW POST button
+
+        // TEST, TODO: Move up there with the other member fields
+        postService = PostService.getInstance();
+
+        /**
+         * Fires off when the user presses New Post button
+         */
         displayButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 clearPostIt();
@@ -133,30 +135,25 @@ public class MainActivity extends AppCompatActivity {
                 //overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
                 spinShowPostIt();
-
             }
         });
 
-        // This is what fires off when you click outside of the post area
+        /**
+         * Fires off an event when the OUTSIDE of the post it is clicked.
+         * Used to create or update the post by clicking outside it.
+         */
         overlay.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 if(currentState.equals(PostStates.CREATE_POST_MODE)){
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
-                    // Insert into room database
-                    mPostsViewModel.insert(post);
-                    // Insert into firebase database
-                    addPostToFirebase(post);
+                    postService.createPost(post);
                     Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
-
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
-                    mPostsViewModel.update(selectedPost);
-                    // Update firebase database
-                    // TODO
-
+                    postService.updatePost(selectedPost);
                     Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
                 background_overlay.setAlpha(1);
@@ -168,7 +165,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Represents the TextView on the NEW POST screen/overlay
+        /**
+         * Enables writing on the post it overlay on the main screen.
+         */
         editedPostitNote.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -186,24 +185,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Inserts data from post object to firestore database
-     * @param post
-     */
-    private void addPostToFirebase(Post post) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference ref = db.collection("posts").document();
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        post.setFirestore_id(ref.getId());
-        post.setUser_id(userId);
-        ref.set(post);
-    }
-
-    private void updatePostAtFirebase(Post post) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        //db.collection("posts").add(post);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
         super.onActivityResult(requestCode, resultCode, data);
@@ -216,9 +197,9 @@ public class MainActivity extends AppCompatActivity {
                 //Show email on toast
                 Toast.makeText(this, ""+user.getEmail(), Toast.LENGTH_SHORT).show();
                 // Set Button signout
-                btn_signinout.setEnabled(true);
+                bbtnSigninout.setEnabled(true);
                 // Handles log in and log out with button
-                btn_signinout.setOnClickListener(new View.OnClickListener(){
+                bbtnSigninout.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view) {
                         AuthUI.getInstance()
@@ -226,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
-                                        btn_signinout.setEnabled(false);
+                                        bbtnSigninout.setEnabled(false);
                                         showSignInOptions();
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
@@ -274,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                 .setContentIntent(pendingIntent)
                 .build();
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        notificationManagerCompat.notify(post.getId(), notification);
+        //notificationManagerCompat.notify(post.getId(), notification);
     }
 
     /**
@@ -301,14 +282,14 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Takes a Post object as a parameter. Opens the post-it editor overlay and passes it the information from the Post
      * parameter.
-     * @param post This is a post it object reference
+     * @param selectedPost This is a post it object reference to a currently selected post
      */
-    public void editPostIt(Post post){
+    public void editPostIt(){
         overlay.setVisibility(View.VISIBLE);
         background_overlay.setAlpha(0.2f);
         spinShowPostIt();
-        editedPostitNote.setText(post.getPostText());
-        reminderCheckBox.setChecked(post.isReminder());
+        editedPostitNote.setText(selectedPost.getPostText());
+        reminderCheckBox.setChecked(selectedPost.isReminder());
     }
     /***
      * Creates a notification channel to handle notification requests and organize them within the Android OS
