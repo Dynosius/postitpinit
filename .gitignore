@@ -10,3 +10,4 @@
 .externalNativeBuild
 /.idea/
 /google-services.json
+./.idea/
