@@ -22,14 +22,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private MainActivity activity;
     private Context context;
     private PostService postService;
-    private ArrayList<Post> posts;
+    private ArrayList<Post> posts = new ArrayList<>();
 
     public PostAdapter(Context context, MainActivity activity) {
         mInflater = LayoutInflater.from(context);
         this.context = context;
         this.activity = activity;
         postService = PostService.getInstance();
-        posts = postService.getUnpinnedPosts();
     }
 
     @NonNull

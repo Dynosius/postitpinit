@@ -1,16 +1,19 @@
 package projects.riteh.post_itpin_it.view;
 
 import android.annotation.SuppressLint;
-import android.support.v7.widget.GridLayoutManager;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
+import android.support.annotation.Nullable;
+import projects.riteh.post_itpin_it.adapter.PostAdapter;
+import projects.riteh.post_itpin_it.adapter.PostViewModel;
 import projects.riteh.post_itpin_it.model.Post;
 
 import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
 
 @SuppressLint("ValidFragment")
-public class PostFragment extends PostFragments implements Observer {
-    private projects.riteh.post_itpin_it.adapter.PostAdapter postAdapter;
+public class PostFragment extends PostFragments{
+    private PostAdapter postAdapter;
+    private PostViewModel mPostViewModel;
 
     PostFragment(int layoutID) {
         super(layoutID);
@@ -18,15 +21,14 @@ public class PostFragment extends PostFragments implements Observer {
 
     @Override
     protected void setAdapterView() {
-        postAdapter = new projects.riteh.post_itpin_it.adapter.PostAdapter(getActivity(), (MainActivity)getActivity());
+        postAdapter = new PostAdapter(getActivity(), (MainActivity)getActivity());
         recyclerView.setAdapter(postAdapter);
-        // Here we define how we want to display post-its in the fragment (either linearly as rows or something else)
-        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false));
-
-    }
-
-    @Override
-    public void update(Observable o, Object arg) {
-        postAdapter.setPosts((ArrayList<Post>) arg);
+        mPostViewModel = ViewModelProviders.of(this).get(PostViewModel.class);
+        mPostViewModel.getUnpinnedPosts().observe(this, new Observer<ArrayList<Post>>() {
+            @Override
+            public void onChanged(@Nullable ArrayList<Post> posts) {
+                postAdapter.setPosts(posts);
+            }
+        });
     }
 }

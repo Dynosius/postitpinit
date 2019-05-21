@@ -83,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        providers = Arrays.asList(
+                //new AuthUI.IdpConfig.EmailBuilder().build(),
+                //new AuthUI.IdpConfig.PhoneBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build()
+        );
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         createNotificationChannel();
@@ -100,26 +105,11 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
-        adapter.addFragment(pinnedPostFragment, "Tab 1");
-        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
-        adapter.addFragment(new Tab3Fragment(), "Tab 3");
-        viewPager.setAdapter(adapter);
-        tabLayout.setupWithViewPager(viewPager);
-
-        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
-        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
-        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
-
-        providers = Arrays.asList(
-                //new AuthUI.IdpConfig.EmailBuilder().build(),
-                //new AuthUI.IdpConfig.PhoneBuilder().build(),
-                new AuthUI.IdpConfig.GoogleBuilder().build()
-        );
-        /**
-         * Firebase login initialization
-         */
-        showSignInOptions();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+            showSignInOptions();
+        } else{
+            initFirebaseComponents();
+        }
 
         // TEST, TODO: Move up there with the other member fields
         postService = PostService.getInstance();
@@ -194,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //Get user
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                initFirebaseComponents();
                 //Show email on toast
                 Toast.makeText(this, ""+user.getEmail(), Toast.LENGTH_SHORT).show();
                 // Set Button signout
@@ -225,6 +216,20 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void initFirebaseComponents() {
+        pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
+        adapter.addFragment(pinnedPostFragment, "Tab 1");
+        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
+        adapter.addFragment(new Tab3Fragment(), "Tab 3");
+        viewPager.setAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
+        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
+        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
+    }
+
     /**
      * Displays sign in options (Google Firebase UI)
      */
@@ -250,12 +255,12 @@ public class MainActivity extends AppCompatActivity {
     // Method for creating a notification
     // TODO: Maybe create a specific class with its own interface for different types of reminders (event, general reminder)
     public void createNotification(Post post){
-        Notification notification = notificationBuilder.setContentTitle("Reminder")
+        Notification notification = notificationBuilder.setContentTitle("Reminder (HASHCODE: " + post.getFirestore_id().hashCode() + ")")
                 .setContentText(post.getPostText())
                 .setContentIntent(pendingIntent)
                 .build();
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        //notificationManagerCompat.notify(post.getId(), notification);
+        notificationManagerCompat.notify(post.getFirestore_id().hashCode(), notification);
     }
 
     /**

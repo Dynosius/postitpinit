@@ -1,5 +1,6 @@
 package projects.riteh.post_itpin_it.service;
 
+import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -12,7 +13,6 @@ import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 
 
@@ -26,14 +26,13 @@ public class PostService extends Observable {
     private DocumentSnapshot mLastQueriedDocument;
     private static PostService postServiceInstance;
     private CollectionReference postsCollectionReference;
-    private ArrayList<Post> pinnedPosts, unpinnedPosts;
+    private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts;
+
 
     private PostService(){
         this.firebaseFirestore = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         initOnPostChangeListener();
-        pinnedPosts = findPinnedPosts();
-        unpinnedPosts = findUnpinnedPosts();
     }
 
     /**
@@ -86,7 +85,8 @@ public class PostService extends Observable {
 
     private void initOnPostChangeListener(){
         postsCollectionReference = firebaseFirestore.collection("posts");
-
+        findPinnedPosts();
+        findUnpinnedPosts();
         postsCollectionReference
                 .whereEqualTo("reminder", true)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -97,12 +97,11 @@ public class PostService extends Observable {
                     return;
                 }
 
-                pinnedPosts = new ArrayList<>();
+                ArrayList<Post> current = new ArrayList<>();
                 for(QueryDocumentSnapshot doc: value){
-                    pinnedPosts.add(doc.toObject(Post.class));
+                    current.add(doc.toObject(Post.class));
                 }
-                setChanged();
-                notifyObservers(pinnedPosts);
+                pinnedPosts.postValue(current);
             }
         });
 
@@ -115,72 +114,43 @@ public class PostService extends Observable {
                             Log.w("Listen failed unpinned", e);
                             return;
                         }
-                        unpinnedPosts = new ArrayList<>();
+                        ArrayList<Post> current = new ArrayList<>();
                         for (QueryDocumentSnapshot doc: value){
-                            unpinnedPosts.add(doc.toObject(Post.class));
+                            current.add(doc.toObject(Post.class));
                         }
-                        setChanged();
-                        notifyObservers(unpinnedPosts);
+                        unpinnedPosts.postValue(current);
                     }
                 });
     }
 
-    public ArrayList<Post> getPinnedPosts() {
-        return pinnedPosts;
-    }
-
-    public ArrayList<Post> getUnpinnedPosts() {
-        return unpinnedPosts;
-    }
-
-    public Post findPostById(String id){
-        CollectionReference postsReference = firebaseFirestore.collection("posts");
-        Query postsQuery = postsReference.whereEqualTo("firebase_id", id);
-        return getPosts(postsQuery).get(0);
-    }
-
-    /**
-     * Returns all posts owned by the currently authenticated user
-     * @return ArrayList<Post> object
-     */
-    public List<Post> findAllPosts(){
-        final ArrayList<Post> posts;
-        CollectionReference postsReference = firebaseFirestore.collection("posts");
-        Query postsQuery = postsReference.whereEqualTo("user_id", currentUser);
-        posts = getPosts(postsQuery);
-        return posts;
-    }
     /**
      * Finds pinned posts from firestore database
      * @return List<Post> of pinned posts
      */
-    private ArrayList<Post> findPinnedPosts(){
-        final ArrayList<Post> posts;
+    private void findPinnedPosts(){
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
                 .whereEqualTo("reminder", true);
-        posts = getPosts(postsQuery);
-        return posts;
+        pinnedPosts = getPosts(postsQuery);
     }
 
     /**
      * Finds unpinned posts from firestore database
      * @return List<Post> of unpinned posts
      */
-    private ArrayList<Post> findUnpinnedPosts(){
-        final ArrayList<Post> posts;
+    private void findUnpinnedPosts(){
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
                 .whereEqualTo("reminder", false);
-        posts = getPosts(postsQuery);
-        return posts;
+        unpinnedPosts = getPosts(postsQuery);
     }
 
     // Internal method to avoid duplicate code
-    private ArrayList<Post> getPosts(Query postsQuery){
+    private MutableLiveData<ArrayList<Post>> getPosts(Query postsQuery){
         final ArrayList<Post> posts = new ArrayList<>();
+        final MutableLiveData<ArrayList<Post>> liveDataPost = new MutableLiveData<>();
 
         postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -195,9 +165,19 @@ public class PostService extends Observable {
                                 .get(task.getResult().size() - 1);
                     }
                     // TODO: Recyclerview notifydatasetchanged
+
+                    liveDataPost.postValue(posts);
                 }
             }
         });
-        return posts;
+        return liveDataPost;
+    }
+
+    public MutableLiveData<ArrayList<Post>> getPinnedPosts() {
+        return pinnedPosts;
+    }
+
+    public MutableLiveData<ArrayList<Post>> getUnpinnedPosts() {
+        return unpinnedPosts;
     }
 }

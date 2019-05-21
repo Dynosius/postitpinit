@@ -20,12 +20,11 @@ public class PinnedPostAdapter extends RecyclerView.Adapter<PinnedPostAdapter.Po
     private LayoutInflater mInflater;
     private MainActivity activity;
     private PostService mPostService;
-    private ArrayList<Post> posts;
+    private ArrayList<Post> posts = new ArrayList<>();
     public PinnedPostAdapter(Context context, MainActivity activity){
         mInflater = LayoutInflater.from(context);
         this.activity = activity;
         mPostService = PostService.getInstance();
-        posts = mPostService.getPinnedPosts();
     }
 
     @Override
@@ -50,6 +49,13 @@ public class PinnedPostAdapter extends RecyclerView.Adapter<PinnedPostAdapter.Po
         notifyDataSetChanged();
     }
 
+    public void createNotifications(ArrayList<Post> posts) {
+        activity.cancelNotifications();
+        for (Post post : posts){
+            activity.createNotification(post);
+        }
+    }
+
     // HOLDER CLASS
     class PostViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
         private final TextView postItemView;
@@ -59,13 +65,14 @@ public class PinnedPostAdapter extends RecyclerView.Adapter<PinnedPostAdapter.Po
             postItemView.setOnClickListener(this);
             postItemView.setOnLongClickListener(this);
         }
+        // Selects post with this action and opnes edit dialog
         @Override
         public void onClick(View v) {
             activity.setCurrentState(MainActivity.PostStates.EDIT_POST_MODE);
             activity.setSelectedPost(posts.get(getLayoutPosition()));
             activity.editPostIt();
         }
-
+        // Delete with this action
         @Override
         public boolean onLongClick(View v) {
             final Post post = posts.get(getLayoutPosition());

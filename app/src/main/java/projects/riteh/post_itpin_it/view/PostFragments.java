@@ -3,6 +3,7 @@ package projects.riteh.post_itpin_it.view;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,8 @@ public abstract class PostFragments extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(layoutId, container, false);
         recyclerView = view.findViewById(R.id.recyclerview);
+        // Here we define how we want to display post-its in the fragment (either linearly as rows or something else)
+        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false));
         setAdapterView();
         return view;
     }
