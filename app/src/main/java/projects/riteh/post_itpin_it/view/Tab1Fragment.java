@@ -3,6 +3,8 @@ import android.annotation.SuppressLint;
 import android.arch.lifecycle.Observer;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+
+import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.model.Post;
 import projects.riteh.post_itpin_it.controller.PostAdapter;
 
@@ -22,6 +24,7 @@ public class Tab1Fragment extends PostFragments {
         recyclerView.setAdapter(postAdapter);
         // Here we define how we want to display post-its in the fragment (either linearly as rows or something else)
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false));
+        recyclerView.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
         mPostsViewModel.getAllPinned().observe(this, new Observer<List<Post>>() {
             @Override
             public void onChanged(@Nullable List<Post> posts) {
