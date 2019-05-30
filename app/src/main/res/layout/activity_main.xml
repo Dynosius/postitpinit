@@ -55,7 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="0dp"
-                android:background="#fed76c" />
+                android:background="@color/postItColor" />
 
             <LinearLayout
                 android:layout_width="match_parent"
