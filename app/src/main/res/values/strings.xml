@@ -3,4 +3,5 @@
     <string name="title_activity_main">Post it, pin it!</string>
     <string name="signin">Sign in</string>
     <string name="signout">Sign out</string>
+    <string name="reminder">Reminder</string>
 </resources>

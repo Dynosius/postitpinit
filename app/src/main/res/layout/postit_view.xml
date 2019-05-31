@@ -2,13 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="175dp"
-              android:layout_height="100dp">
+              android:layout_height="175dp"
+              android:background="@android:drawable/dialog_holo_light_frame">
 
-    <TextView
-            android:id="@+id/textView"
-            style="@style/word_title"
-            android:layout_marginLeft="8dp"
-            android:layout_marginBottom="2dp"
-            android:layout_height="match_parent"
-            android:background="@android:color/holo_orange_light"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/postItColor">
+
+        <TextView
+                android:id="@+id/textView"
+                style="@style/word_title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginBottom="2dp" />
+    </FrameLayout>
+
 </LinearLayout>

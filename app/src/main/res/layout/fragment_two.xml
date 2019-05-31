@@ -13,6 +13,6 @@
             android:id="@+id/recyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white"
+            android:background="@color/backgroundColor"
             tools:listitem="@layout/postit_view"/>
 </android.support.constraint.ConstraintLayout>
