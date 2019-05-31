@@ -8,10 +8,18 @@
         tools:context=".view.MainActivity" android:id="@+id/parent_layout">
 
     <Button
-            android:text="New post"
+            android:text="+"
             android:id="@+id/openOverlayBtn"
-            android:layout_alignParentBottom="true" android:layout_marginBottom="19dp" android:layout_width="158dp"
-            android:layout_height="wrap_content" android:layout_alignParentEnd="true"/>
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="19dp"
+            android:layout_marginBottom="19dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:textSize="20sp"
+            android:textColor="@color/backgroundColor"
+            app:backgroundTint="@color/secondaryDarkColor"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"/>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:app="http://schemas.android.com/apk/res-auto"
                   android:layout_width="match_parent"
