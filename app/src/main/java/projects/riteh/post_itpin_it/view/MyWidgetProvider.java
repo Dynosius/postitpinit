@@ -27,8 +27,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
                 MyWidgetProvider.class);
         int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
         for (int widgetId : allWidgetIds) {
-            RemoteViews rv = new RemoteViews(context.getPackageName(),R.layout.widget_layout);
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+            Intent configIntent = new Intent(context, TransparentPostit.class);
 
+            PendingIntent configPendingIntent = PendingIntent.getActivity(context, 0, configIntent, 0);
+
+            remoteViews.setOnClickPendingIntent(R.id.button, configPendingIntent);
+
+            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
         }
     }
 }
