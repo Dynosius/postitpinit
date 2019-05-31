@@ -7,12 +7,13 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.NotificationCompat;
@@ -21,15 +22,24 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.*;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import projects.riteh.post_itpin_it.R;
-import projects.riteh.post_itpin_it.controller.PostsViewModel;
 import projects.riteh.post_itpin_it.model.Post;
+import projects.riteh.post_itpin_it.service.PostService;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_CODE = 4413;
 
     public enum PostStates{
         EDIT_POST_MODE, CREATE_POST_MODE
@@ -43,9 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private Intent intent;
     private TabAdapter adapter;
     private TabLayout tabLayout;
-    private Tab1Fragment tab1;
+    private PinnedPostFragment pinnedPostFragment;
     private ViewPager viewPager;
-    private PostsViewModel mPostsViewModel;
     private InputMethodManager imm;
     private TextInputEditText editedPostitNote;
     private Button displayButton;
@@ -54,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox reminderCheckBox;
     private PostStates currentState = PostStates.CREATE_POST_MODE;
     private Post selectedPost;
+    private PostService postService;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
     private View postitLayout;
@@ -61,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
     private boolean keyboardShown = false;
+    // Firebase
+    private List<AuthUI.IdpConfig> providers;
+    private Button bbtnSigninout;
 
     public NotificationManagerCompat getNotificationManagerCompat() {
         return notificationManagerCompat;
@@ -70,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        providers = Arrays.asList(
+                //new AuthUI.IdpConfig.EmailBuilder().build(),
+                //new AuthUI.IdpConfig.PhoneBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build()
+        );
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         createNotificationChannel();
@@ -82,24 +100,23 @@ public class MainActivity extends AppCompatActivity {
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
         postitLayout = findViewById(R.id.postItLayout);
 
-        mPostsViewModel = ViewModelProviders.of(this).get(PostsViewModel.class);
+        bbtnSigninout = findViewById(R.id.signinout);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        tab1 = new Tab1Fragment(R.layout.fragment_one);
-        adapter.addFragment(tab1, "Tab 1");
-        adapter.addFragment(new Tab2Fragment(R.layout.fragment_two), "Tab 2");
-        adapter.addFragment(new Tab3Fragment(), "Tab 3");
-        viewPager.setAdapter(adapter);
-        tabLayout.setupWithViewPager(viewPager);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+            showSignInOptions();
+        } else{
+            initFirebaseComponents();
+        }
 
-        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
-        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
-        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
+        // TEST, TODO: Move up there with the other member fields
+        postService = PostService.getInstance();
 
-
-        // Represents the NEW POST button
+        /**
+         * Fires off when the user presses New Post button
+         */
         displayButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 clearPostIt();
@@ -108,23 +125,26 @@ public class MainActivity extends AppCompatActivity {
                 //overlay.setVisibility(View.VISIBLE);
                 background_overlay.setAlpha(0.2f);
                 spinShowPostIt();
-
             }
         });
 
-        // This is what fires off when you click outside of the post area
+        /**
+         * Fires off an event when the OUTSIDE of the post it is clicked.
+         * Used to create or update the post by clicking outside it.
+         */
         overlay.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 if(currentState.equals(PostStates.CREATE_POST_MODE)){
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
-                    mPostsViewModel.insert(post);
-
+                    postService.createPost(post);
+                    Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
-                    mPostsViewModel.update(selectedPost);
+                    postService.updatePost(selectedPost);
+                    Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
                 background_overlay.setAlpha(1);
                 spinHidePostIt();
@@ -135,7 +155,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Represents the TextView on the NEW POST screen/overlay
+        /**
+         * Enables writing on the post it overlay on the main screen.
+         */
         editedPostitNote.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -153,10 +175,78 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CODE){
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+            if(resultCode == RESULT_OK){
+
+                //Get user
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                initFirebaseComponents();
+                //Show email on toast
+                Toast.makeText(this, ""+user.getEmail(), Toast.LENGTH_SHORT).show();
+                // Set Button signout
+                bbtnSigninout.setEnabled(true);
+                // Handles log in and log out with button
+                bbtnSigninout.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        AuthUI.getInstance()
+                                .signOut(MainActivity.this)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        bbtnSigninout.setEnabled(false);
+                                        showSignInOptions();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(MainActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+            }
+            else
+            {
+                Toast.makeText(this, ""+response.getError().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void initFirebaseComponents() {
+        pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
+        adapter.addFragment(pinnedPostFragment, "Tab 1");
+        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
+        adapter.addFragment(new Tab3Fragment(), "Tab 3");
+        viewPager.setAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
+        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
+        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
+    }
+
+    /**
+     * Displays sign in options (Google Firebase UI)
+     */
+    private void showSignInOptions() {
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .setTheme(R.style.MyTheme)
+                        .build(),
+        REQUEST_CODE);
+    }
+
     // Initialization methods and notification channels
 
 
-    // This enables opening of the application with clicking on the notification
+    // This initiates an intent to open the MainActivity with clicking on the notification
     private void intentInit() {
         intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -165,13 +255,17 @@ public class MainActivity extends AppCompatActivity {
     // Method for creating a notification
     // TODO: Maybe create a specific class with its own interface for different types of reminders (event, general reminder)
     public void createNotification(Post post){
-        Notification notification = notificationBuilder.setContentTitle("Reminder")
+        Notification notification = notificationBuilder.setContentTitle("Reminder (HASHCODE: " + post.getFirestore_id().hashCode() + ")")
                 .setContentText(post.getPostText())
                 .setContentIntent(pendingIntent)
                 .build();
         notification.flags |= Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        notificationManagerCompat.notify(post.getId(), notification);
+        notificationManagerCompat.notify(post.getFirestore_id().hashCode(), notification);
     }
+
+    /**
+     * Destroys all current instances of notifications. This is used to refresh notifications once they have been updated
+     */
     public void cancelNotifications(){
         notificationManagerCompat.cancelAll();
     }
@@ -193,16 +287,15 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Takes a Post object as a parameter. Opens the post-it editor overlay and passes it the information from the Post
      * parameter.
-     * @param post
+     * @param selectedPost This is a post it object reference to a currently selected post
      */
-    public void editPostIt(Post post){
+    public void editPostIt(){
         overlay.setVisibility(View.VISIBLE);
         background_overlay.setAlpha(0.2f);
         spinShowPostIt();
-        editedPostitNote.setText(post.getPostText());
-        reminderCheckBox.setChecked(post.isReminder());
+        editedPostitNote.setText(selectedPost.getPostText());
+        reminderCheckBox.setChecked(selectedPost.isReminder());
     }
-
     /***
      * Creates a notification channel to handle notification requests and organize them within the Android OS
      */
@@ -218,10 +311,19 @@ public class MainActivity extends AppCompatActivity {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(pendingIntent);
     }
+
+    /**
+     * Sets current post to the one passed as an argument. This is used for purposes of having a reference to the object
+     * in the MainActivity context
+     * @param selectedPost
+     */
     public void setSelectedPost(Post selectedPost) {
         this.selectedPost = selectedPost;
     }
 
+    /**
+     * Method to animate the post it with spinning it
+     */
     private void spinShowPostIt() {
         final View overlay = findViewById(R.id.overlay_layout);
         overlay.setVisibility(View.VISIBLE);
@@ -244,6 +346,9 @@ public class MainActivity extends AppCompatActivity {
         //System.out.println(postitLayout.getRotation());
     }
 
+    /**
+     * Method to animate post it and hide it afterwards
+     */
     private void spinHidePostIt() {
         final View overlay = findViewById(R.id.overlay_layout);
         postitLayout.animate()
