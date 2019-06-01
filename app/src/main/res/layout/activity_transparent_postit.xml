@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.TransparentPostit"
+    android:background="#C0000000">
+
+        <RelativeLayout
+            android:layout_width="269dp"
+            android:layout_height="288dp"
+            android:layout_centerHorizontal="true" android:layout_alignParentTop="true"
+            android:layout_marginTop="91dp" android:id="@+id/postItLayout" android:clickable="true"
+            android:background="@android:color/transparent"
+            android:textColor="#FFFFFF" >
+
+            <ImageView
+                android:id="@+id/orange_object"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="0dp"
+                android:background="#fed76c" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/textInputArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="263dp"
+                    android:layout_marginTop="0dp">
+
+                    <android.support.design.widget.TextInputEditText
+                        android:id="@+id/textInputEditedTextPostitNote"
+                        android:layout_width="match_parent"
+                        android:layout_height="251dp" />
+                </android.support.design.widget.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/reminderCheckBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reminder"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+</android.support.constraint.ConstraintLayout>
