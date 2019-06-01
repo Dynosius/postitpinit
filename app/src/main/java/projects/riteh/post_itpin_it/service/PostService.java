@@ -89,6 +89,7 @@ public class PostService extends Observable {
         findUnpinnedPosts();
         postsCollectionReference
                 .whereEqualTo("reminder", true)
+                .whereEqualTo("user_id", currentUser)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
@@ -107,6 +108,7 @@ public class PostService extends Observable {
 
         postsCollectionReference
                 .whereEqualTo("reminder", false)
+                .whereEqualTo("user_id", currentUser)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
