@@ -8,56 +8,35 @@
     android:orientation="vertical"
     android:background="@android:color/holo_orange_light" >
 
-    <TextView
-        android:id="@+id/update2"
-        style="@android:style/TextAppearance.Medium"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:gravity="center_horizontal|center_vertical"
-        android:layout_margin="4dip"
-        android:editable="true"
-        android:focusableInTouchMode="true"
-        android:lines="3"
-        android:text="Static Text" >
-    </TextView>
-    <TextView
-        android:id="@+id/update"
-        android:layout_width="0dp"
-        android:layout_height="fill_parent"
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:text="Static TextdfghujgztfdsaSDFG"
-        style="@android:style/Widget.EditText">
-    </TextView>
-    <LinearLayout
+        android:background="@android:color/holo_orange_light"
+        android:text="+"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <ImageButton
-            android:id="@+id/imageButton"
+        android:layout_weight="1">
+        <StackView
+            android:id="@+id/widget_stack_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@android:drawable/checkbox_off_background"
-            android:background="@android:color/holo_orange_light"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
-
-        <Button
-            android:id="@+id/button"
+            android:layout_height="match_parent"
+            android:loopViews="true"></StackView>
+        <TextView
+            android:id="@+id/widget_empty_stack_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@android:color/holo_orange_light"
-            android:text="+"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
-    </LinearLayout>
-
+            android:layout_height="match_parent"
+            android:background="@color/primaryColor"
+            android:text="Empty"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+    </FrameLayout>
 
 </LinearLayout>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="projects.riteh.post_itpin_it">
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
     package="projects.riteh.post_itpin_it">
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -11,13 +11,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".view.TransparentPostit" android:windowSoftInputMode="adjustResize" ></activity>
+        <activity
+            android:name=".view.TransparentPostit"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".view.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -31,5 +34,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@layout/widget_info" />
         </receiver>
+
+        <service
+            android:name=".service.WidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
+
 </manifest>
