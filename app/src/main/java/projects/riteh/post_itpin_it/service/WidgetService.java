@@ -1,20 +1,20 @@
 package projects.riteh.post_itpin_it.service;
 
 import android.appwidget.AppWidgetManager;
-import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemClock;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import java.util.ArrayList;
 
 import projects.riteh.post_itpin_it.R;
-import projects.riteh.post_itpin_it.adapter.PostAdapter;
 import projects.riteh.post_itpin_it.model.Post;
 
 public class WidgetService extends RemoteViewsService {
+
+    private ArrayList<Post> posts = new ArrayList<>();
+
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
         return new WidgetItemFactory(getApplicationContext(), intent);
@@ -23,43 +23,42 @@ public class WidgetService extends RemoteViewsService {
     class WidgetItemFactory implements RemoteViewsFactory {
         private Context context;
         private int appWidgetid;
-        //private MutableLiveData<ArrayList<Post>> postitData;
-        private String[] exampleData = {"one", "two", "three", "four"};
-        //private PostService postService;
-        //private ArrayList<Post> posts = new ArrayList<>();
+        private PostService postService;
+        //private String[] exampleData = {"one", "two", "three", "four"};
 
-        WidgetItemFactory (Context context, Intent intent) {
+        WidgetItemFactory (final Context context, Intent intent) {
             this.context = context;
             this.appWidgetid = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-            //postService = PostService.getInstance();
         }
 
         @Override
         public void onCreate() {
             //connect to a data source
             //SystemClock.sleep(1000);
-            //postitData = postService.getPinnedPosts();
+            postService = PostService.getInstance();
         }
 
         @Override
         public void onDataSetChanged() {
-
+            //TODO: Put arraylist elements on each postit in widget and display them
+            posts = postService.getPinnedPostsArray();
         }
 
         @Override
         public void onDestroy() {
             //close data source
+            postService = null;
         }
 
         @Override
         public int getCount() {
-            return exampleData.length;
+            return posts.size();
         }
 
         @Override
         public RemoteViews getViewAt(int position) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_item);
-            views.setTextViewText(R.id.widget_item_text, exampleData[position]);
+            views.setTextViewText(R.id.widget_item_text, posts.get(position).getPostText());
             //SystemClock.sleep(500);
             return views;
         }

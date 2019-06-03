@@ -1,9 +1,12 @@
 package projects.riteh.post_itpin_it.view;
 
 import android.annotation.SuppressLint;
+import android.appwidget.AppWidgetManager;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.ComponentName;
 import android.support.annotation.Nullable;
+import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.adapter.PinnedPostAdapter;
 import projects.riteh.post_itpin_it.adapter.PostViewModel;
 import projects.riteh.post_itpin_it.model.Post;
@@ -29,6 +32,12 @@ public class PinnedPostFragment extends PostFragments{
             public void onChanged(@Nullable ArrayList<Post> posts) {
                 postAdapter.setPosts(posts);
                 postAdapter.createNotifications(posts);
+
+                // Refresh widget
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getContext());
+                int [] appWidgetIds = appWidgetManager.getAppWidgetIds(
+                        new ComponentName(getContext(), MyWidgetProvider.class));
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_stack_view);
             }
         });
     }
