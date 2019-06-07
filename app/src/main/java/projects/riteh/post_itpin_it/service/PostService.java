@@ -13,34 +13,37 @@ import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Observable;
 
 
 /**
  * Singleton class. Use PostService.getInstance() to get the object reference.
  * Handles queries to FireStore database and returns data objects
  */
-public class PostService extends Observable {
+public class PostService{
     private FirebaseFirestore firebaseFirestore;
     private String currentUser;
     private DocumentSnapshot mLastQueriedDocument;
     private static PostService postServiceInstance;
     private CollectionReference postsCollectionReference;
     private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts;
+    private ArrayList<Post> pinnedPostsArray;
 
 
-    private PostService(){
+    private PostService() {
         this.firebaseFirestore = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        pinnedPostsArray = new ArrayList<>();
         initOnPostChangeListener();
+
     }
 
     /**
      * Returns a singleton of type PostService
+     *
      * @return instance of FirebaseFirestore
      */
-    public static PostService getInstance(){
-        if(postServiceInstance == null){
+    public static PostService getInstance() {
+        if (postServiceInstance == null) {
             postServiceInstance = new PostService();
         }
         return postServiceInstance;
@@ -48,9 +51,10 @@ public class PostService extends Observable {
 
     /**
      * Creates a new post and saves it to Firebase database with current user's ID as well as a unique firebase ID
+     *
      * @param post A post object
      */
-    public void createPost(Post post){
+    public void createPost(Post post) {
         DocumentReference ref = firebaseFirestore.collection("posts").document();
         post.setUser_id(currentUser);
         post.setFirestore_id(ref.getId());
@@ -69,21 +73,22 @@ public class PostService extends Observable {
 
     }
 
-    public void deletePost(Post post){
+    public void deletePost(Post post) {
         postsCollectionReference.document(post.getFirestore_id()).delete();
     }
 
-    public void updatePost(Post post){
+    public void updatePost(Post post) {
         String postId = post.getFirestore_id();
         // Creates a new post if the current post id is null (if we send update with new Post?)
-        if (postId == null){
+        if (postId == null) {
             postId = firebaseFirestore.collection("posts").document().getId();
         }
         DocumentReference ref = firebaseFirestore.collection("posts").document(postId);
         ref.set(post);
     }
 
-    private void initOnPostChangeListener(){
+    private void initOnPostChangeListener() {
+        // Adds all pinned posts
         postsCollectionReference = firebaseFirestore.collection("posts");
         findPinnedPosts();
         findUnpinnedPosts();
@@ -91,33 +96,34 @@ public class PostService extends Observable {
                 .whereEqualTo("reminder", true)
                 .whereEqualTo("user_id", currentUser)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
-                if(e != null){
-                    Log.w("Listen failed pinned", e);
-                    return;
-                }
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w("Listen failed pinned", e);
+                            return;
+                        }
 
-                ArrayList<Post> current = new ArrayList<>();
-                for(QueryDocumentSnapshot doc: value){
-                    current.add(doc.toObject(Post.class));
-                }
-                pinnedPosts.postValue(current);
-            }
-        });
-
+                        ArrayList<Post> current = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : value) {
+                            current.add(doc.toObject(Post.class));
+                        }
+                        pinnedPostsArray = current;
+                        pinnedPosts.postValue(current);
+                    }
+                });
+        // adds all unpinned posts
         postsCollectionReference
                 .whereEqualTo("reminder", false)
                 .whereEqualTo("user_id", currentUser)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException e) {
-                        if(e != null){
+                        if (e != null) {
                             Log.w("Listen failed unpinned", e);
                             return;
                         }
                         ArrayList<Post> current = new ArrayList<>();
-                        for (QueryDocumentSnapshot doc: value){
+                        for (QueryDocumentSnapshot doc : value) {
                             current.add(doc.toObject(Post.class));
                         }
                         unpinnedPosts.postValue(current);
@@ -127,9 +133,10 @@ public class PostService extends Observable {
 
     /**
      * Finds pinned posts from firestore database
+     *
      * @return List<Post> of pinned posts
      */
-    private void findPinnedPosts(){
+    private void findPinnedPosts() {
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
@@ -139,9 +146,10 @@ public class PostService extends Observable {
 
     /**
      * Finds unpinned posts from firestore database
+     *
      * @return List<Post> of unpinned posts
      */
-    private void findUnpinnedPosts(){
+    private void findUnpinnedPosts() {
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
@@ -150,19 +158,19 @@ public class PostService extends Observable {
     }
 
     // Internal method to avoid duplicate code
-    private MutableLiveData<ArrayList<Post>> getPosts(Query postsQuery){
+    private MutableLiveData<ArrayList<Post>> getPosts(Query postsQuery) {
         final ArrayList<Post> posts = new ArrayList<>();
         final MutableLiveData<ArrayList<Post>> liveDataPost = new MutableLiveData<>();
 
         postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if(task.isSuccessful()){
-                    for(QueryDocumentSnapshot document: task.getResult()){
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
                         Post post = document.toObject(Post.class);
                         posts.add(post);
                     }
-                    if (task.getResult().size() != 0){
+                    if (task.getResult().size() != 0) {
                         mLastQueriedDocument = task.getResult().getDocuments()
                                 .get(task.getResult().size() - 1);
                     }
@@ -181,5 +189,9 @@ public class PostService extends Observable {
 
     public MutableLiveData<ArrayList<Post>> getUnpinnedPosts() {
         return unpinnedPosts;
+    }
+
+    public ArrayList<Post> getPinnedPostsArray() {
+        return pinnedPostsArray;
     }
 }
