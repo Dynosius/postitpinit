@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
         adapter.addFragment(pinnedPostFragment, "Tab 1");
         adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
-        adapter.addFragment(new Tab3Fragment(), "Tab 3");
+        adapter.addFragment(new CalendarFragment(), "Tab 3");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
 
