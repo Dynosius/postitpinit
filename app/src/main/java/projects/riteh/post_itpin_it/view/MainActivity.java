@@ -35,15 +35,18 @@ import projects.riteh.post_itpin_it.model.Post;
 import projects.riteh.post_itpin_it.service.PostService;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE = 4413;
 
-    public enum PostStates{
+    public enum PostStates {
         EDIT_POST_MODE, CREATE_POST_MODE
     }
+
     private int[] tabIcons = {
             R.drawable.star,
             R.drawable.note,
@@ -51,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     };
     private PendingIntent pendingIntent;
     private Intent intent;
+
+    // Views
+    private View postitLayout;
     private TabAdapter adapter;
     private TabLayout tabLayout;
     private PinnedPostFragment pinnedPostFragment;
@@ -60,25 +66,26 @@ public class MainActivity extends AppCompatActivity {
     private Button displayButton;
     private RelativeLayout overlay;
     private LinearLayout background_overlay;
+    private RelativeLayout calendarLayoutView;
+    private ImageButton calendarButton, saveDateButton, imgButton;
+    private CalendarView calendar;
     private CheckBox reminderCheckBox;
+
+    // Variables
     private PostStates currentState = PostStates.CREATE_POST_MODE;
     private Post selectedPost;
+    private Date selectedDate;
     private PostService postService;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
-    private View postitLayout;
     private NotificationManager notificationManager;
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
     private boolean keyboardShown = false;
+    private boolean isDateSelected = false;
     // Firebase
     private List<AuthUI.IdpConfig> providers;
     private Button bbtnSigninout;
-
-    public NotificationManagerCompat getNotificationManagerCompat() {
-        return notificationManagerCompat;
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,21 +106,32 @@ public class MainActivity extends AppCompatActivity {
         background_overlay = findViewById(R.id.pozadinski_layout);
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
         postitLayout = findViewById(R.id.postItLayout);
+        calendarButton = findViewById(R.id.calendarButton);
+        imgButton = findViewById(R.id.exitCalendarButton);
+        saveDateButton = findViewById(R.id.saveDateButton);
+        calendar = findViewById(R.id.calendarViewNewPost);
 
         bbtnSigninout = findViewById(R.id.signinout);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             showSignInOptions();
-        } else{
+        } else {
             initFirebaseComponents();
         }
 
         // TEST, TODO: Move up there with the other member fields
         postService = PostService.getInstance();
 
+        calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                selectedDate = new GregorianCalendar(year, month, dayOfMonth).getTime();
+                isDateSelected = true;
+            }
+        });
         /**
          * Fires off when the user presses New Post button
          */
@@ -128,24 +146,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        saveDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calendarLayoutView.setVisibility(View.INVISIBLE);
+            }
+        });
+        imgButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calendarLayoutView.setVisibility(View.INVISIBLE);
+            }
+        });
+        calendarButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                calendarLayoutView = findViewById(R.id.CalendarLayoutNewPost);
+                calendarLayoutView.setVisibility(View.VISIBLE);
+            }
+        });
         /**
          * Fires off an event when the OUTSIDE of the post it is clicked.
          * Used to create or update the post by clicking outside it.
          */
-        overlay.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                if(currentState.equals(PostStates.CREATE_POST_MODE)){
+        overlay.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (currentState.equals(PostStates.CREATE_POST_MODE)) {
                     Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
+                    post.setCalendarEntry(isDateSelected);
+                    if(isDateSelected){ post.setAssignedDate(selectedDate); }
                     postService.createPost(post);
                     Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
-                } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
+                } else if (currentState.equals(PostStates.EDIT_POST_MODE)) {
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
+                    selectedPost.setCalendarEntry(isDateSelected);
+                    if(isDateSelected){ selectedPost.setAssignedDate(selectedDate); }
                     postService.updatePost(selectedPost);
                     Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
+                calendarLayoutView.setVisibility(View.INVISIBLE);
+                isDateSelected = false;
+                selectedDate = null;
                 background_overlay.setAlpha(1);
                 spinHidePostIt();
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -158,15 +201,14 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Enables writing on the post it overlay on the main screen.
          */
-        editedPostitNote.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+        editedPostitNote.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-                if(!keyboardShown){
+                if (!keyboardShown) {
                     imm.showSoftInput(v, 0);
                     keyboardShown = true;
-                }
-                else{
+                } else {
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                     keyboardShown = false;
                 }
@@ -176,21 +218,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE){
+        if (requestCode == REQUEST_CODE) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
-            if(resultCode == RESULT_OK){
+            if (resultCode == RESULT_OK) {
 
                 //Get user
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 initFirebaseComponents();
                 //Show email on toast
-                Toast.makeText(this, ""+user.getEmail(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "" + user.getEmail(), Toast.LENGTH_SHORT).show();
                 // Set Button signout
                 bbtnSigninout.setEnabled(true);
                 // Handles log in and log out with button
-                bbtnSigninout.setOnClickListener(new View.OnClickListener(){
+                bbtnSigninout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         AuthUI.getInstance()
@@ -204,15 +246,13 @@ public class MainActivity extends AppCompatActivity {
                                 }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(MainActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 });
-            }
-            else
-            {
-                Toast.makeText(this, ""+response.getError().getMessage(), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "" + response.getError().getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -240,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAvailableProviders(providers)
                         .setTheme(R.style.MyTheme)
                         .build(),
-        REQUEST_CODE);
+                REQUEST_CODE);
     }
 
     // Initialization methods and notification channels
@@ -252,9 +292,10 @@ public class MainActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
     }
+
     // Method for creating a notification
     // TODO: Maybe create a specific class with its own interface for different types of reminders (event, general reminder)
-    public void createNotification(Post post){
+    public void createNotification(Post post) {
         Notification notification = notificationBuilder.setContentTitle("Reminder (HASHCODE: " + post.getFirestore_id().hashCode() + ")")
                 .setContentText(post.getPostText())
                 .setContentIntent(pendingIntent)
@@ -266,13 +307,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Destroys all current instances of notifications. This is used to refresh notifications once they have been updated
      */
-    public void cancelNotifications(){
+    public void cancelNotifications() {
         notificationManagerCompat.cancelAll();
     }
 
     /**
      * Clears the display on the screen
-     *
      */
     private void clearPostIt() {
         editedPostitNote.setText("");
@@ -287,19 +327,21 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Takes a Post object as a parameter. Opens the post-it editor overlay and passes it the information from the Post
      * parameter.
-     * @param selectedPost This is a post it object reference to a currently selected post
+     *
+     *
      */
-    public void editPostIt(){
+    public void editPostIt() {
         overlay.setVisibility(View.VISIBLE);
         background_overlay.setAlpha(0.2f);
         spinShowPostIt();
         editedPostitNote.setText(selectedPost.getPostText());
         reminderCheckBox.setChecked(selectedPost.isReminder());
     }
+
     /***
      * Creates a notification channel to handle notification requests and organize them within the Android OS
      */
-    private void createNotificationChannel(){
+    private void createNotificationChannel() {
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(new NotificationChannel("0", "Default channel"
@@ -315,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Sets current post to the one passed as an argument. This is used for purposes of having a reference to the object
      * in the MainActivity context
+     *
      * @param selectedPost
      */
     public void setSelectedPost(Post selectedPost) {
@@ -330,8 +373,8 @@ public class MainActivity extends AppCompatActivity {
         postitLayout.setVisibility(View.VISIBLE);
         //System.out.println(postitLayout.getRotation());
         postitLayout.animate()
-             //   .scaleXBy(0.5f)
-             //   .scaleYBy(0.5f)
+                //   .scaleXBy(0.5f)
+                //   .scaleYBy(0.5f)
                 .alpha(1.0f)
                 .rotation(360.0f)
                 .setDuration(500)
@@ -352,8 +395,8 @@ public class MainActivity extends AppCompatActivity {
     private void spinHidePostIt() {
         final View overlay = findViewById(R.id.overlay_layout);
         postitLayout.animate()
-         //       .scaleXBy(0.0f)
-         //       .scaleYBy(0.0f)
+                //       .scaleXBy(0.0f)
+                //       .scaleYBy(0.0f)
                 .alpha(0.0f)
                 .rotation(-360.0f)
                 .setDuration(500)
@@ -366,5 +409,9 @@ public class MainActivity extends AppCompatActivity {
                         background_overlay.setAlpha(1);
                     }
                 });
+    }
+
+    public NotificationManagerCompat getNotificationManagerCompat() {
+        return notificationManagerCompat;
     }
 }

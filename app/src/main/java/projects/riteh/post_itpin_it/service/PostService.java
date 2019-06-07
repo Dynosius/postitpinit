@@ -12,7 +12,10 @@ import com.google.firebase.firestore.*;
 import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
 
 
 /**
@@ -166,14 +169,7 @@ public class PostService{
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Post post = document.toObject(Post.class);
-                        posts.add(post);
-                    }
-                    if (task.getResult().size() != 0) {
-                        mLastQueriedDocument = task.getResult().getDocuments()
-                                .get(task.getResult().size() - 1);
-                    }
+                    processQueryPosts(task, posts);
                     // TODO: Recyclerview notifydatasetchanged
 
                     liveDataPost.postValue(posts);
@@ -193,5 +189,41 @@ public class PostService{
 
     public ArrayList<Post> getPinnedPostsArray() {
         return pinnedPostsArray;
+    }
+
+    /**
+     * Returns list of posts matching the given date
+     */
+    public ArrayList<Post> getPostsByDate(Date date){
+        final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS zzz";
+        final SimpleDateFormat sdf = new SimpleDateFormat(ISO_FORMAT);
+        final TimeZone utc = TimeZone.getTimeZone("UTC");
+        sdf.setTimeZone(utc);
+        final ArrayList<Post> posts = new ArrayList<>();
+        CollectionReference postsReference = firebaseFirestore.collection("posts");
+        Query postsQuery = postsReference
+                .whereEqualTo("user_id", currentUser)
+                .whereEqualTo("assignedDate", sdf.format(date));
+        postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    processQueryPosts(task, posts);
+                }
+            }
+        });
+        return posts;
+    }
+
+    // To avoid code duplication
+    private void processQueryPosts(@NonNull Task<QuerySnapshot> task, ArrayList<Post> posts) {
+        for (QueryDocumentSnapshot document : task.getResult()) {
+            Post post = document.toObject(Post.class);
+            posts.add(post);
+        }
+        if (task.getResult().size() != 0) {
+            mLastQueriedDocument = task.getResult().getDocuments()
+                    .get(task.getResult().size() - 1);
+        }
     }
 }
