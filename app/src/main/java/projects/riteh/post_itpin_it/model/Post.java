@@ -20,8 +20,7 @@ public class Post {
 
     public Post (){}
 
-    public Post(Date timestamp, boolean isReminder, String postText, String user_id, String firestore_id){
-        this.timestamp = timestamp;
+    public Post(boolean isReminder, String postText, String user_id, String firestore_id){
         this.isReminder = isReminder;
         this.postText = postText;
         this.user_id = user_id;

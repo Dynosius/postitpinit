@@ -5,11 +5,12 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent" android:id="@+id/calendarLayout">
     <android.support.v7.widget.RecyclerView
-            android:layout_width="415dp"
-            android:layout_height="176dp"
+            android:layout_width="414dp"
+            android:layout_height="136dp"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginBottom="216dp"
-            app:layout_constraintBottom_toBottomOf="parent" android:id="@+id/calendarRecyclerView"/>
+            android:id="@+id/calendarRecyclerView"
+            app:layout_constraintTop_toBottomOf="@+id/calendarView"
+    />
     <CalendarView
             android:layout_width="366dp"
             android:layout_height="322dp" android:id="@+id/calendarView"

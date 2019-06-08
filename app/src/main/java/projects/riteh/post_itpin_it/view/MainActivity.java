@@ -124,7 +124,9 @@ public class MainActivity extends AppCompatActivity {
 
         // TEST, TODO: Move up there with the other member fields
         postService = PostService.getInstance();
-
+        /**
+         * This is used mostly for the calendar for the new post screen
+         */
         calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
@@ -164,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 calendarLayoutView.setVisibility(View.VISIBLE);
             }
         });
+
         /**
          * Fires off an event when the OUTSIDE of the post it is clicked.
          * Used to create or update the post by clicking outside it.
@@ -186,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
                     postService.updatePost(selectedPost);
                     Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
-                calendarLayoutView.setVisibility(View.INVISIBLE);
+
+                if(calendarLayoutView != null){ calendarLayoutView.setVisibility(View.INVISIBLE); }
                 isDateSelected = false;
                 selectedDate = null;
                 background_overlay.setAlpha(1);

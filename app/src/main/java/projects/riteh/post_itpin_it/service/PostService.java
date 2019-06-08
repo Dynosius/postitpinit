@@ -29,13 +29,14 @@ public class PostService{
     private static PostService postServiceInstance;
     private CollectionReference postsCollectionReference;
     private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts;
-    private ArrayList<Post> pinnedPostsArray;
+    private ArrayList<Post> pinnedPostsArray, calendarPosts;
 
 
     private PostService() {
         this.firebaseFirestore = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         pinnedPostsArray = new ArrayList<>();
+        calendarPosts = new ArrayList<>();
         initOnPostChangeListener();
 
     }
@@ -170,8 +171,6 @@ public class PostService{
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     processQueryPosts(task, posts);
-                    // TODO: Recyclerview notifydatasetchanged
-
                     liveDataPost.postValue(posts);
                 }
             }
@@ -195,24 +194,21 @@ public class PostService{
      * Returns list of posts matching the given date
      */
     public ArrayList<Post> getPostsByDate(Date date){
-        final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS zzz";
-        final SimpleDateFormat sdf = new SimpleDateFormat(ISO_FORMAT);
-        final TimeZone utc = TimeZone.getTimeZone("UTC");
-        sdf.setTimeZone(utc);
-        final ArrayList<Post> posts = new ArrayList<>();
+        //calendarPosts = new ArrayList<>(); this doesn't work for whatever reason
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
-                .whereEqualTo("assignedDate", sdf.format(date));
+                .whereEqualTo("assignedDate", date);
         postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    processQueryPosts(task, posts);
+                    calendarPosts = new ArrayList<>();
+                    processQueryPosts(task, calendarPosts);
                 }
             }
         });
-        return posts;
+        return calendarPosts;
     }
 
     // To avoid code duplication
