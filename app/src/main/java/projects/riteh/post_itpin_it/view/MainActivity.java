@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private View postitLayout;
     private TabAdapter adapter;
     private TabLayout tabLayout;
-    private PinnedPostFragment pinnedPostFragment;
     private ViewPager viewPager;
     private InputMethodManager imm;
     private TextInputEditText editedPostitNote;
@@ -262,8 +261,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initFirebaseComponents() {
-        pinnedPostFragment = new PinnedPostFragment(R.layout.fragment_one);
-        adapter.addFragment(pinnedPostFragment, "Tab 1");
+        adapter.addFragment(new PinnedPostFragment(R.layout.fragment_one), "Tab 1");
         adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
         adapter.addFragment(new CalendarFragment(), "Tab 3");
         viewPager.setAdapter(adapter);

@@ -12,10 +12,8 @@ import com.google.firebase.firestore.*;
 import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.TimeZone;
 
 
 /**
@@ -28,17 +26,17 @@ public class PostService{
     private DocumentSnapshot mLastQueriedDocument;
     private static PostService postServiceInstance;
     private CollectionReference postsCollectionReference;
-    private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts;
-    private ArrayList<Post> pinnedPostsArray, calendarPosts;
+    private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts, calendarPosts;
+    private ArrayList<Post> pinnedPostsArray;
 
 
     private PostService() {
         this.firebaseFirestore = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         pinnedPostsArray = new ArrayList<>();
-        calendarPosts = new ArrayList<>();
+        calendarPosts = new MutableLiveData<>();
+        //calendarPosts.postValue(new ArrayList<Post>());
         initOnPostChangeListener();
-
     }
 
     /**
@@ -193,8 +191,8 @@ public class PostService{
     /**
      * Returns list of posts matching the given date
      */
-    public ArrayList<Post> getPostsByDate(Date date){
-        //calendarPosts = new ArrayList<>(); this doesn't work for whatever reason
+    public void refreshCalendarByDate(Date date){
+        final ArrayList posts = new ArrayList<>();
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
@@ -203,12 +201,11 @@ public class PostService{
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    calendarPosts = new ArrayList<>();
-                    processQueryPosts(task, calendarPosts);
+                    processQueryPosts(task, posts);
+                    calendarPosts.postValue(posts);
                 }
             }
         });
-        return calendarPosts;
     }
 
     // To avoid code duplication
@@ -221,5 +218,9 @@ public class PostService{
             mLastQueriedDocument = task.getResult().getDocuments()
                     .get(task.getResult().size() - 1);
         }
+    }
+
+    public MutableLiveData<ArrayList<Post>> getCalendarPosts() {
+        return calendarPosts;
     }
 }

@@ -13,7 +13,6 @@ import projects.riteh.post_itpin_it.service.PostService;
 import projects.riteh.post_itpin_it.view.MainActivity;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.CalendarViewHolder> {
     private LayoutInflater mInflater;
@@ -41,8 +40,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.Calend
         }
     }
 
-    public void refreshPosts(Date date) {
-        this.posts = mPostService.getPostsByDate(date);
+    public void setPosts(ArrayList<Post> posts){
+        this.posts = posts;
         notifyDataSetChanged();
     }
 
