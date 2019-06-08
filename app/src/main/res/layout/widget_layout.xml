@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:layout_margin="8dip"
     android:orientation="vertical"
-    android:background="@android:color/holo_orange_light" >
+    android:background="@android:color/transparent">
 
     <Button
         android:id="@+id/button"
