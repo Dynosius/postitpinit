@@ -11,10 +11,11 @@
         android:layout_height="200dp"
         android:background="@color/postItColor"
         android:text="Item"
-        android:gravity="center"
+        android:gravity="left"
         android:textColor="@android:color/white"
         android:textSize="20sp"
-        android:textStyle="bold">
+        android:textStyle="bold"
+        android:padding="5dp" >
 
     </TextView>
 </LinearLayout>
