@@ -4,4 +4,9 @@
     <string name="signin">Sign in</string>
     <string name="signout">Sign out</string>
     <string name="reminder">Reminder</string>
+    <string name="share_dialog_message">Would you like to share this message?</string>
+    <string name="share_dialog_title">Share</string>
+    <string name="share_dialog_ok">Send</string>
+    <string name="share_dialog_cancel">Cancel</string>
+    <string name="username">Username</string>
 </resources>

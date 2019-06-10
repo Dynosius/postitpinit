@@ -3,11 +3,13 @@ package projects.riteh.post_itpin_it.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
@@ -20,7 +22,9 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.firebase.ui.auth.AuthUI;
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     // Firebase
     private List<AuthUI.IdpConfig> providers;
     private Button bbtnSigninout;
+    private ImageButton button_share;
 
     public NotificationManagerCompat getNotificationManagerCompat() {
         return notificationManagerCompat;
@@ -173,6 +178,33 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        button_share = findViewById(R.id.button_share);
+        button_share.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                showCustomDialog();
+            }
+        });
+    }
+
+    private void showCustomDialog() {
+        ViewGroup viewGroup = findViewById(android.R.id.content);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_share, viewGroup, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+        builder.setPositiveButton(R.string.share_dialog_ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    // sign in the user ...
+                }
+            })
+            .setNegativeButton(R.string.share_dialog_cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    //MainActivity.this.getDialog().cancel();
+                }
+            });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     @Override
