@@ -215,7 +215,15 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
                     intent.setType("text/plain");
                     intent.putExtra(Intent.EXTRA_SUBJECT, "Postit-pin it Shared note");
-                    intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: http://www.example.com/postitpinit?text="+editedPostitNote.getText()+"&reminder="+reminderCheckBox.isChecked());
+                    Uri.Builder builder = new Uri.Builder();
+                    builder.scheme("http")
+                            .authority("www.example.com")
+                            .appendPath("postitpinit")
+                            .appendQueryParameter("text", String.valueOf(editedPostitNote.getText()))
+                            .appendQueryParameter("reminder", String.valueOf(reminderCheckBox.isChecked()));
+                    String sharedUrl = builder.build().toString();
+                    //intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: http://www.example.com/postitpinit?text="+editedPostitNote.getText()+"&reminder="+reminderCheckBox.isChecked());
+                    intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: "+ sharedUrl);
                     intent.setData(Uri.parse("mailto:"+sharingEmail.getText())); // or just "mailto:" for blank
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
                     startActivity(intent);
