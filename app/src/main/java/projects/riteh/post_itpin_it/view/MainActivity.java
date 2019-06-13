@@ -141,11 +141,12 @@ public class MainActivity extends AppCompatActivity {
         overlay.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 if(currentState.equals(PostStates.CREATE_POST_MODE)){
-                    Post post = new Post();
+                    /*Post post = new Post();
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
                     postService.createPost(post);
-                    Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();*/
+                    CreatePost(editedPostitNote.getText().toString(), reminderCheckBox.isChecked());
                 } else if(currentState.equals(PostStates.EDIT_POST_MODE)){
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
@@ -195,8 +196,10 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = intent.getData();
             System.out.println("Iz deeplinka");
             System.out.println(uri.toString());
-            String paramValue = uri.getQueryParameter("text");
-            System.out.println(paramValue);
+            String sharedPostitText = uri.getQueryParameter("text");
+            boolean sharedPostitReminder = Boolean.parseBoolean(uri.getQueryParameter("reminder"));
+            System.out.println(sharedPostitText);
+            CreatePost(sharedPostitText, sharedPostitReminder);
         }
     }
 
@@ -212,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
                     intent.setType("text/plain");
                     intent.putExtra(Intent.EXTRA_SUBJECT, "Postit-pin it Shared note");
-                    intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: http://www.example.com/postitpinit?text="+editedPostitNote.getText());
+                    intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: http://www.example.com/postitpinit?text="+editedPostitNote.getText()+"&reminder="+reminderCheckBox.isChecked());
                     intent.setData(Uri.parse("mailto:"+sharingEmail.getText())); // or just "mailto:" for blank
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
                     startActivity(intent);
@@ -418,5 +421,13 @@ public class MainActivity extends AppCompatActivity {
                         background_overlay.setAlpha(1);
                     }
                 });
+    }
+
+    private void CreatePost(String postitText, boolean isRemainder) {
+        Post post = new Post();
+        post.setPostText(postitText);
+        post.setReminder(isRemainder);
+        postService.createPost(post);
+        Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
     }
 }
