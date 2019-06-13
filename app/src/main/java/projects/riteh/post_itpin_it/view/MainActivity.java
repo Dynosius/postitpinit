@@ -323,7 +323,6 @@ public class MainActivity extends AppCompatActivity {
                 .setContentText(post.getPostText())
                 .setSubText(post.getAssignedDate().toString())
                 .build();
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
         return notification;
     }
 
@@ -436,10 +435,15 @@ public class MainActivity extends AppCompatActivity {
         Intent notificationIntent = new Intent(this, NotificationPublisher.class);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, id);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent,0);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, 1, notificationIntent,0);
 
         AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNotification, pendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeOfNotification, pIntent);
+        }
+        else{
+            alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNotification, pIntent);
+        }
     }
 
     public NotificationManagerCompat getNotificationManagerCompat() {
