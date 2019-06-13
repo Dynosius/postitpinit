@@ -120,42 +120,18 @@
                             android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_month"
                             android:id="@+id/calendarButton"
                             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
-                            android:layout_marginEnd="104dp" android:layout_marginRight="104dp"/>
+                            android:layout_marginEnd="92dp" android:layout_marginRight="92dp"/>
+                    <ImageButton
+                            android:layout_width="40dp"
+                            android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_lock_idle_alarm"
+                            android:id="@+id/pickTimeButton"
+                            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                            android:layout_marginEnd="16dp" android:layout_marginRight="16dp"/>
 
                 </android.support.constraint.ConstraintLayout>
 
             </LinearLayout>
 
-        </RelativeLayout>
-        <RelativeLayout
-                android:layout_width="320dp"
-                android:layout_height="348dp" android:id="@+id/CalendarLayoutNewPost"
-                android:layout_alignParentTop="true" android:layout_marginTop="204dp"
-                android:layout_marginLeft="40dp" android:visibility="invisible"
-                android:background="@color/backgroundColor">
-            <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" app:srcCompat="@android:drawable/btn_dialog"
-                    android:id="@+id/exitCalendarButton" android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true" android:layout_marginRight="0dp"
-                    android:layout_marginEnd="0dp" android:layout_marginTop="0dp"
-                    android:layout_alignParentTop="true"/>
-            <CalendarView
-                    android:layout_width="318dp"
-                    android:layout_height="298dp" android:id="@+id/calendarViewNewPost"
-                    android:layout_alignParentBottom="true" android:layout_marginBottom="0dp"/>
-            <TextView
-                    android:text="Test"
-                    android:layout_width="152dp"
-                    android:layout_height="49dp" android:id="@+id/SelectCalendarLabel" android:layout_marginTop="0dp"
-                    android:layout_alignParentTop="true" android:textSize="8sp"/>
-            <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_save"
-                    android:id="@+id/saveDateButton" android:layout_marginTop="0dp"
-                    android:layout_alignParentTop="true" android:layout_alignRight="@+id/calendarViewNewPost"
-                    android:layout_marginRight="81dp" android:layout_marginEnd="81dp"
-                    android:layout_alignEnd="@+id/calendarViewNewPost"/>
         </RelativeLayout>
     </RelativeLayout>
 

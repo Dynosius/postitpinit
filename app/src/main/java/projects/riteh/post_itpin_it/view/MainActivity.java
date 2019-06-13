@@ -3,10 +3,7 @@ package projects.riteh.post_itpin_it.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.app.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -34,10 +31,7 @@ import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.model.Post;
 import projects.riteh.post_itpin_it.service.PostService;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,8 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout overlay;
     private LinearLayout background_overlay;
     private RelativeLayout calendarLayoutView;
-    private ImageButton calendarButton, saveDateButton, imgButton;
-    private CalendarView calendar;
+    private ImageButton calendarButton;
     private CheckBox reminderCheckBox;
 
     // Variables
@@ -106,9 +99,6 @@ public class MainActivity extends AppCompatActivity {
         reminderCheckBox = findViewById(R.id.reminderCheckBox);
         postitLayout = findViewById(R.id.postItLayout);
         calendarButton = findViewById(R.id.calendarButton);
-        imgButton = findViewById(R.id.exitCalendarButton);
-        saveDateButton = findViewById(R.id.saveDateButton);
-        calendar = findViewById(R.id.calendarViewNewPost);
 
         bbtnSigninout = findViewById(R.id.signinout);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
@@ -124,16 +114,6 @@ public class MainActivity extends AppCompatActivity {
         // TEST, TODO: Move up there with the other member fields
         postService = PostService.getInstance();
         /**
-         * This is used mostly for the calendar for the new post screen
-         */
-        calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                selectedDate = new GregorianCalendar(year, month, dayOfMonth).getTime();
-                isDateSelected = true;
-            }
-        });
-        /**
          * Fires off when the user presses New Post button
          */
         displayButton.setOnClickListener(new View.OnClickListener() {
@@ -147,24 +127,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        saveDateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                calendarLayoutView.setVisibility(View.INVISIBLE);
-            }
-        });
-        imgButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                calendarLayoutView.setVisibility(View.INVISIBLE);
-            }
-        });
         calendarButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                calendarLayoutView = findViewById(R.id.CalendarLayoutNewPost);
-                calendarLayoutView.setVisibility(View.VISIBLE);
+                //calendarLayoutView = findViewById(R.id.CalendarLayoutNewPost);
+                //calendarLayoutView.setVisibility(View.VISIBLE);
+                Calendar c = Calendar.getInstance();
+                int year = c.get(Calendar.YEAR);
+                int month = c.get(Calendar.MONTH);
+                int day = c.get(Calendar.DAY_OF_MONTH);
+                // Creates a date picking dialog
+                DatePickerDialog datePickerDialog = new DatePickerDialog(MainActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                                final GregorianCalendar gregorianCalendar = new GregorianCalendar(year, month, dayOfMonth);
+                                // Immediately after picking a date creates a time dialog
+                                TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                                    @Override
+                                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                        gregorianCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                        gregorianCalendar.set(Calendar.MINUTE, minute);
+
+                                        // Now create an actual date
+                                        selectedDate = gregorianCalendar.getTime();
+                                        isDateSelected = true;
+                                    }
+                                }, 0, 0, true);
+                                timePickerDialog.show();
+                            }
+                        }, year, month, day);
+                datePickerDialog.show();
             }
         });
+
 
         /**
          * Fires off an event when the OUTSIDE of the post it is clicked.
@@ -177,19 +172,25 @@ public class MainActivity extends AppCompatActivity {
                     post.setPostText(editedPostitNote.getText().toString());
                     post.setReminder(reminderCheckBox.isChecked());
                     post.setCalendarEntry(isDateSelected);
-                    if(isDateSelected){ post.setAssignedDate(selectedDate); }
+                    if (isDateSelected) {
+                        post.setAssignedDate(selectedDate);
+                    }
                     postService.createPost(post);
                     Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
                 } else if (currentState.equals(PostStates.EDIT_POST_MODE)) {
                     selectedPost.setPostText(editedPostitNote.getText().toString());
                     selectedPost.setReminder(reminderCheckBox.isChecked());
                     selectedPost.setCalendarEntry(isDateSelected);
-                    if(isDateSelected){ selectedPost.setAssignedDate(selectedDate); }
+                    if (isDateSelected) {
+                        selectedPost.setAssignedDate(selectedDate);
+                    }
                     postService.updatePost(selectedPost);
                     Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
 
-                if(calendarLayoutView != null){ calendarLayoutView.setVisibility(View.INVISIBLE); }
+                if (calendarLayoutView != null) {
+                    calendarLayoutView.setVisibility(View.INVISIBLE);
+                }
                 isDateSelected = false;
                 selectedDate = null;
                 background_overlay.setAlpha(1);
@@ -329,8 +330,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Takes a Post object as a parameter. Opens the post-it editor overlay and passes it the information from the Post
      * parameter.
-     *
-     *
      */
     public void editPostIt() {
         overlay.setVisibility(View.VISIBLE);
