@@ -56,7 +56,7 @@ public class PostService{
      *
      * @param post A post object
      */
-    public void createPost(Post post) {
+    public Post createPost(Post post) {
         DocumentReference ref = firebaseFirestore.collection("posts").document();
         post.setUser_id(currentUser);
         post.setFirestore_id(ref.getId());
@@ -72,14 +72,14 @@ public class PostService{
                 // TODO: Write failure message
             }
         });
-
+        return post;
     }
 
     public void deletePost(Post post) {
         postsCollectionReference.document(post.getFirestore_id()).delete();
     }
 
-    public void updatePost(Post post) {
+    public Post updatePost(Post post) {
         String postId = post.getFirestore_id();
         // Creates a new post if the current post id is null (if we send update with new Post?)
         if (postId == null) {
@@ -87,6 +87,7 @@ public class PostService{
         }
         DocumentReference ref = firebaseFirestore.collection("posts").document(postId);
         ref.set(post);
+        return post;
     }
 
     private void initOnPostChangeListener() {

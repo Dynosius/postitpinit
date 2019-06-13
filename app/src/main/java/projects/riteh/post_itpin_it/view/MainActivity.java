@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -27,6 +28,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import projects.riteh.post_itpin_it.NotificationPublisher;
 import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.model.Post;
 import projects.riteh.post_itpin_it.service.PostService;
@@ -59,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private Button displayButton;
     private RelativeLayout overlay;
     private LinearLayout background_overlay;
-    private RelativeLayout calendarLayoutView;
     private ImageButton calendarButton;
     private CheckBox reminderCheckBox;
 
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private PostService postService;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManagerCompat;
+    private AlarmManager alarmManager;
     private NotificationManager notificationManager;
     private final String CHANNEL_ID = "testID";
     private final String GROUP_NAME = "Testing";
@@ -91,7 +93,10 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         createNotificationChannel();
         intentInit();
+
         notificationManagerCompat = NotificationManagerCompat.from(this);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
         editedPostitNote = findViewById(R.id.textInputEditedTextPostitNote);
         displayButton = findViewById(R.id.openOverlayBtn);
         overlay = findViewById(R.id.overlay_layout);
@@ -175,7 +180,11 @@ public class MainActivity extends AppCompatActivity {
                     if (isDateSelected) {
                         post.setAssignedDate(selectedDate);
                     }
-                    postService.createPost(post);
+                    post = postService.createPost(post);
+                    if (isDateSelected){
+                        scheduleNotification(createEventNotification(post), post.getAssignedDate().getTime(),
+                                post.getFirestore_id().hashCode());
+                    }
                     Toast.makeText(getApplicationContext(), "Post added", Toast.LENGTH_SHORT).show();
                 } else if (currentState.equals(PostStates.EDIT_POST_MODE)) {
                     selectedPost.setPostText(editedPostitNote.getText().toString());
@@ -184,13 +193,14 @@ public class MainActivity extends AppCompatActivity {
                     if (isDateSelected) {
                         selectedPost.setAssignedDate(selectedDate);
                     }
-                    postService.updatePost(selectedPost);
+                    selectedPost = postService.updatePost(selectedPost);
+                    if(isDateSelected){
+                        scheduleNotification(createEventNotification(selectedPost), selectedPost.getAssignedDate().getTime()
+                                , selectedPost.getFirestore_id().hashCode());
+                    }
                     Toast.makeText(getApplicationContext(), "Post updated", Toast.LENGTH_SHORT).show();
                 }
 
-                if (calendarLayoutView != null) {
-                    calendarLayoutView.setVisibility(View.INVISIBLE);
-                }
                 isDateSelected = false;
                 selectedDate = null;
                 background_overlay.setAlpha(1);
@@ -307,6 +317,16 @@ public class MainActivity extends AppCompatActivity {
         notificationManagerCompat.notify(post.getFirestore_id().hashCode(), notification);
     }
 
+    private Notification createEventNotification(Post post){
+        Notification notification = notificationBuilder
+                .setContentTitle("EVENT")
+                .setContentText(post.getPostText())
+                .setSubText(post.getAssignedDate().toString())
+                .build();
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        return notification;
+    }
+
     /**
      * Destroys all current instances of notifications. This is used to refresh notifications once they have been updated
      */
@@ -410,6 +430,16 @@ public class MainActivity extends AppCompatActivity {
                         background_overlay.setAlpha(1);
                     }
                 });
+    }
+
+    private void scheduleNotification(Notification notification, long timeOfNotification, int id){
+        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, id);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent,0);
+
+        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, timeOfNotification, pendingIntent);
     }
 
     public NotificationManagerCompat getNotificationManagerCompat() {
