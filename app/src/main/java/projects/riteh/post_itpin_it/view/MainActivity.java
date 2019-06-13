@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -185,17 +186,36 @@ public class MainActivity extends AppCompatActivity {
                 showCustomDialog();
             }
         });
+
+        // detecting if the activity started from a deeplink
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        System.out.println(action);
+        if (action == "android.intent.action.VIEW") {
+            Uri uri = intent.getData();
+            System.out.println("Iz deeplinka");
+            System.out.println(uri.toString());
+            String paramValue = uri.getQueryParameter("text");
+            System.out.println(paramValue);
+        }
     }
 
     private void showCustomDialog() {
         ViewGroup viewGroup = findViewById(android.R.id.content);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_share, viewGroup, false);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final EditText sharingEmail = (EditText) dialogView.findViewById(R.id.email_to_share);
         builder.setView(dialogView);
         builder.setPositiveButton(R.string.share_dialog_ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
-                    // sign in the user ...
+                    Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
+                    intent.setType("text/plain");
+                    intent.putExtra(Intent.EXTRA_SUBJECT, "Postit-pin it Shared note");
+                    intent.putExtra(Intent.EXTRA_TEXT, "Shared note link: http://www.example.com/postitpinit?text="+editedPostitNote.getText());
+                    intent.setData(Uri.parse("mailto:"+sharingEmail.getText())); // or just "mailto:" for blank
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
+                    startActivity(intent);
                 }
             })
             .setNegativeButton(R.string.share_dialog_cancel, new DialogInterface.OnClickListener() {

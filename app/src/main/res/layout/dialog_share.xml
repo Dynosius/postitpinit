@@ -24,7 +24,7 @@
         android:layout_marginBottom="4dp"
         android:hint="@string/share_dialog_message" />
     <EditText
-        android:id="@+id/username"
+        android:id="@+id/email_to_share"
         android:inputType="textEmailAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
