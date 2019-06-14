@@ -13,7 +13,9 @@ import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 
 /**
@@ -193,11 +195,19 @@ public class PostService{
      * Returns list of posts matching the given date
      */
     public void refreshCalendarByDate(Date date){
-        final ArrayList posts = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        // It really was a long day
+        Date day = new GregorianCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)).getTime();
+        Date nextDay = new GregorianCalendar(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+                (calendar.get(Calendar.DAY_OF_MONTH) + 1)).getTime();
+        final ArrayList<Post> posts = new ArrayList<>();
         CollectionReference postsReference = firebaseFirestore.collection("posts");
         Query postsQuery = postsReference
                 .whereEqualTo("user_id", currentUser)
-                .whereEqualTo("assignedDate", date);
+                .whereGreaterThanOrEqualTo("assignedDate", day)
+                .whereLessThan("assignedDate", nextDay);
         postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
