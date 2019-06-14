@@ -6,11 +6,15 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
 import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.service.WidgetService;
+
+import static  projects.riteh.post_itpin_it.WidgetConfig.KEY_BUTTON_TEXT;
+import static  projects.riteh.post_itpin_it.WidgetConfig.SHARED_PREFS;
 
 public class MyWidgetProvider extends AppWidgetProvider {
 
@@ -25,6 +29,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
         // Gets all ids from our specific widget
         int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
         for (int widgetId : allWidgetIds) {
+            System.out.println("tu");
 
             Intent serviceIntent = new Intent(context, WidgetService.class);
             serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
