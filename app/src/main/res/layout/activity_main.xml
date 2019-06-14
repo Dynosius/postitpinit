@@ -8,10 +8,33 @@
         tools:context=".view.MainActivity" android:id="@+id/parent_layout">
 
     <Button
-            android:text="New post"
+            android:text="+"
             android:id="@+id/openOverlayBtn"
-            android:layout_alignParentBottom="true" android:layout_marginBottom="19dp" android:layout_width="158dp"
-            android:layout_height="wrap_content" android:layout_alignParentEnd="true"/>
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="19dp"
+            android:layout_marginBottom="19dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:textSize="20sp"
+            android:textColor="@color/backgroundColor"
+            app:backgroundTint="@color/secondaryDarkColor"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"/>
+
+    <Button
+            android:text="@string/signout"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:id="@+id/signinout"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="13dp"
+            android:layout_marginStart="13dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="16dp"
+            android:textColor="@color/backgroundColor"
+            app:backgroundTint="@color/secondaryDarkColor"/>
+
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:app="http://schemas.android.com/apk/res-auto"
                   android:layout_width="match_parent"
@@ -25,9 +48,9 @@
                 android:layout_height="wrap_content"
                 android:minHeight="?actionBarSize"
                 app:tabGravity="fill"
-                app:tabIndicatorColor="@color/white"
+                app:tabIndicatorColor="@color/backgroundColor"
                 app:tabIndicatorHeight="4dp"
-                app:tabBackground="@color/colorPrimary"
+                app:tabBackground="@color/primaryColor"
                 app:tabMode="fixed">
         </android.support.design.widget.TabLayout>
 
@@ -40,58 +63,79 @@
     </LinearLayout>
     <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:id="@+id/overlay_layout"
+            android:layout_height="match_parent"
+            android:id="@+id/overlay_layout"
             android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true" android:visibility="invisible">
+            android:layout_alignParentStart="true"
+            android:visibility="invisible"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="0dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="0dp">
 
         <RelativeLayout
                 android:layout_width="269dp"
                 android:layout_height="288dp"
                 android:layout_centerHorizontal="true" android:layout_alignParentTop="true"
-                android:layout_marginTop="91dp" android:id="@+id/postItLayout" android:clickable="true">
+                android:layout_marginTop="91dp" android:id="@+id/postItLayout" android:clickable="true"
+                android:background="@android:drawable/dialog_holo_light_frame">
 
             <ImageView
-                android:id="@+id/orange_object"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="0dp"
-                android:background="#fed76c" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <android.support.design.widget.TextInputLayout
-                    android:id="@+id/textInputArea"
-                    android:layout_width="match_parent"
-                    android:layout_height="263dp"
-                    android:layout_marginTop="0dp">
-
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/textInputEditedTextPostitNote"
-                        android:layout_width="match_parent"
-                        android:layout_height="251dp" />
-                </android.support.design.widget.TextInputLayout>
-
-                <LinearLayout
+                    android:id="@+id/orange_object"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="0dp"
+                    android:background="@color/postItColor"/>
 
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                <android.support.design.widget.TextInputLayout
+                        android:id="@+id/textInputArea"
+                        android:layout_width="match_parent"
+                        android:layout_height="243dp"
+                        android:layout_marginTop="0dp">
+
+                    <android.support.design.widget.TextInputEditText
+                            android:id="@+id/textInputEditedTextPostitNote"
+                            android:layout_width="match_parent"
+                            android:layout_height="231dp"/>
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.constraint.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/constraintLayout">
+                    <ImageButton
+                            android:id="@+id/button_share"
+                            android:layout_width="53dp"
+                            android:layout_height="28dp"
+                            android:layout_weight="1"
+                            android:background="@color/postItColor"
+                            app:srcCompat="@android:drawable/ic_menu_send"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"/>
+                    <ImageButton
+                            android:layout_width="40dp"
+                            android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_month"
+                            android:id="@+id/calendarButton"
+                            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                            android:layout_marginEnd="92dp" android:layout_marginRight="92dp"/>
                     <CheckBox
                             android:id="@+id/reminderCheckBox"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Reminder"/>
-
-                </LinearLayout>
+                            android:text="@string/reminder"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                    />
+                </android.support.constraint.ConstraintLayout>
 
             </LinearLayout>
-
         </RelativeLayout>
-    </RelativeLayout>
 
-    <!-- Ivanin dio -->
+    </RelativeLayout>
 
 </RelativeLayout>
