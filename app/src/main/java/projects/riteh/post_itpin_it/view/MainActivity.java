@@ -12,22 +12,28 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.*;
 import projects.riteh.post_itpin_it.NotificationPublisher;
 import projects.riteh.post_itpin_it.R;
 import projects.riteh.post_itpin_it.model.Post;
@@ -36,8 +42,8 @@ import projects.riteh.post_itpin_it.service.PostService;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int REQUEST_CODE = 4413;
+    private static final String TAG = "GoogleActivity";
+    private static final int RC_SIGN_IN = 4413;
 
     public enum PostStates {
         EDIT_POST_MODE, CREATE_POST_MODE
@@ -78,25 +84,86 @@ public class MainActivity extends AppCompatActivity {
     private boolean keyboardShown = false;
     private boolean isDateSelected = false;
     // Firebase
+    private GoogleSignInClient mGoogleSignInClient;
+    private FirebaseAuth mAuth;
     private List<AuthUI.IdpConfig> providers;
     private Button bbtnSigninout;
+    @Override
+    public void onStart(){
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            initFirebaseComponents();
+        } else {
+            signIn();
+        }
+    }
+
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        mAuth = FirebaseAuth.getInstance();
+
         super.onCreate(savedInstanceState);
-        providers = Arrays.asList(
-                //new AuthUI.IdpConfig.EmailBuilder().build(),
-                //new AuthUI.IdpConfig.PhoneBuilder().build(),
-                new AuthUI.IdpConfig.GoogleBuilder().build()
-        );
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        createNotificationChannel();
-        intentInit();
 
-        notificationManagerCompat = NotificationManagerCompat.from(this);
-        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == RC_SIGN_IN){
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try{
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account);
+            } catch (ApiException e){
+                Log.w(TAG, "Google sign in failed", e);
+                updateUI(null);
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithCredential:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+                            //Snackbar.make(findViewById(R.id.activity_main), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+                    }
+                });
+    }
+
+    private void initFirebaseComponents() {
         editedPostitNote = findViewById(R.id.textInputEditedTextPostitNote);
         displayButton = findViewById(R.id.openOverlayBtn);
         overlay = findViewById(R.id.overlay_layout);
@@ -110,11 +177,22 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         adapter = new TabAdapter(getSupportFragmentManager());
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            showSignInOptions();
-        } else {
-            initFirebaseComponents();
-        }
+
+        adapter.addFragment(new PinnedPostFragment(R.layout.fragment_one), "Tab 1");
+        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
+        adapter.addFragment(new CalendarFragment(), "Tab 3");
+        viewPager.setAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
+        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
+        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
+
+        createNotificationChannel();
+        intentInit();
+
+        notificationManagerCompat = NotificationManagerCompat.from(this);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         // TEST, TODO: Move up there with the other member fields
         postService = PostService.getInstance();
@@ -226,78 +304,9 @@ public class MainActivity extends AppCompatActivity {
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                     keyboardShown = false;
                 }
-
             }
         });
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-            if (resultCode == RESULT_OK) {
-
-                //Get user
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                initFirebaseComponents();
-                //Show email on toast
-                Toast.makeText(this, "" + user.getEmail(), Toast.LENGTH_SHORT).show();
-                // Set Button signout
-                bbtnSigninout.setEnabled(true);
-                // Handles log in and log out with button
-                bbtnSigninout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AuthUI.getInstance()
-                                .signOut(MainActivity.this)
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        bbtnSigninout.setEnabled(false);
-                                        showSignInOptions();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(MainActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                });
-            } else {
-                Toast.makeText(this, "" + response.getError().getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void initFirebaseComponents() {
-        adapter.addFragment(new PinnedPostFragment(R.layout.fragment_one), "Tab 1");
-        adapter.addFragment(new PostFragment(R.layout.fragment_two), "Tab 2");
-        adapter.addFragment(new CalendarFragment(), "Tab 3");
-        viewPager.setAdapter(adapter);
-        tabLayout.setupWithViewPager(viewPager);
-
-        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
-        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
-        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
-    }
-
-    /**
-     * Displays sign in options (Google Firebase UI)
-     */
-    private void showSignInOptions() {
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(providers)
-                        .setTheme(R.style.MyTheme)
-                        .build(),
-                REQUEST_CODE);
-    }
-
-    // Initialization methods and notification channels
-
 
     // This initiates an intent to open the MainActivity with clicking on the notification
     private void intentInit() {
