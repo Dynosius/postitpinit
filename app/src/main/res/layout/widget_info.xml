@@ -8,6 +8,7 @@
     android:minResizeWidth="40dp"
     android:resizeMode="vertical|horizontal"
     android:updatePeriodMillis="3600000"
+    android:previewImage="@drawable/postitpinit_2x1_port14062019_0404"
     android:widgetCategory="home_screen">
 
 </appwidget-provider>
