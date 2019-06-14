@@ -391,6 +391,8 @@ public class MainActivity extends AppCompatActivity {
         final View overlay = findViewById(R.id.overlay_layout);
         overlay.setVisibility(View.VISIBLE);
         postitLayout.setVisibility(View.VISIBLE);
+        displayButton.setVisibility(View.GONE);
+        bbtnSigninout.setVisibility(View.GONE);
         //System.out.println(postitLayout.getRotation());
         postitLayout.animate()
              //   .scaleXBy(0.5f)
@@ -414,6 +416,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void spinHidePostIt() {
         final View overlay = findViewById(R.id.overlay_layout);
+        displayButton.setVisibility(View.VISIBLE);
+        bbtnSigninout.setVisibility(View.VISIBLE);
         postitLayout.animate()
          //       .scaleXBy(0.0f)
          //       .scaleYBy(0.0f)
