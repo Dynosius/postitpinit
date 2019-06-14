@@ -44,6 +44,8 @@
                 android:resource="@layout/widget_info" />
         </receiver>
 
+        <receiver android:name=".NotificationPublisher" />
+
         <service
             android:name=".service.WidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />

@@ -58,7 +58,12 @@ public class WidgetService extends RemoteViewsService {
         @Override
         public RemoteViews getViewAt(int position) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_item);
-            views.setTextViewText(R.id.widget_item_text, posts.get(position).getPostText());
+            try{
+                views.setTextViewText(R.id.widget_item_text, posts.get(position).getPostText());
+            } catch (Exception e){
+                System.err.println("Some error " + e.getMessage());
+            }
+
             //SystemClock.sleep(500);
             return views;
         }

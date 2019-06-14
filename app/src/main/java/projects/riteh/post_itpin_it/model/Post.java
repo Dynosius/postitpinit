@@ -8,11 +8,6 @@ import java.util.Date;
 
 @IgnoreExtraProperties
 public class Post {
-    public static final String FIELD_REMINDER = "isReminder";
-    public static final String FIELD_IMPORTANT = "isImportant";
-    public static final String FIELD_FIRESTORE_ID = "firestoreId";
-    public static final String FIELD_USER_ID = "userId";
-    public static final String FIELD_POST_TEXT = "postText";
 
     private @ServerTimestamp Date timestamp;
     private boolean isReminder;
@@ -20,15 +15,17 @@ public class Post {
     private String firestore_id;
     private String user_id;
     private String postText;
+    private boolean isCalendarEntry;
+    private Date assignedDate;
 
     public Post (){}
 
-    public Post(Date timestamp, boolean isReminder, String postText, String user_id, String firestore_id){
-        this.timestamp = timestamp;
+    public Post(boolean isReminder, String postText, String user_id, String firestore_id){
         this.isReminder = isReminder;
         this.postText = postText;
         this.user_id = user_id;
         this.firestore_id = firestore_id;
+        this.isCalendarEntry = false; // by default, will explicitly set it to calendar entry if requested
     }
 
     public boolean isReminder() {
@@ -70,5 +67,21 @@ public class Post {
 
     public void setPostText(@NonNull String postText) {
         this.postText = postText;
+    }
+
+    public boolean isCalendarEntry() {
+        return isCalendarEntry;
+    }
+
+    public void setCalendarEntry(boolean calendarEntry) {
+        isCalendarEntry = calendarEntry;
+    }
+
+    public Date getAssignedDate() {
+        return assignedDate;
+    }
+
+    public void setAssignedDate(Date assignedDate) {
+        this.assignedDate = assignedDate;
     }
 }

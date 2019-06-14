@@ -13,6 +13,7 @@ import projects.riteh.post_itpin_it.model.Post;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 /**
@@ -25,7 +26,7 @@ public class PostService{
     private DocumentSnapshot mLastQueriedDocument;
     private static PostService postServiceInstance;
     private CollectionReference postsCollectionReference;
-    private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts;
+    private MutableLiveData<ArrayList<Post>> pinnedPosts, unpinnedPosts, calendarPosts;
     private ArrayList<Post> pinnedPostsArray;
 
 
@@ -33,8 +34,9 @@ public class PostService{
         this.firebaseFirestore = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         pinnedPostsArray = new ArrayList<>();
+        calendarPosts = new MutableLiveData<>();
+        //calendarPosts.postValue(new ArrayList<Post>());
         initOnPostChangeListener();
-
     }
 
     /**
@@ -54,7 +56,7 @@ public class PostService{
      *
      * @param post A post object
      */
-    public void createPost(Post post) {
+    public Post createPost(Post post) {
         DocumentReference ref = firebaseFirestore.collection("posts").document();
         post.setUser_id(currentUser);
         post.setFirestore_id(ref.getId());
@@ -70,14 +72,14 @@ public class PostService{
                 // TODO: Write failure message
             }
         });
-
+        return post;
     }
 
     public void deletePost(Post post) {
         postsCollectionReference.document(post.getFirestore_id()).delete();
     }
 
-    public void updatePost(Post post) {
+    public Post updatePost(Post post) {
         String postId = post.getFirestore_id();
         // Creates a new post if the current post id is null (if we send update with new Post?)
         if (postId == null) {
@@ -85,6 +87,7 @@ public class PostService{
         }
         DocumentReference ref = firebaseFirestore.collection("posts").document(postId);
         ref.set(post);
+        return post;
     }
 
     private void initOnPostChangeListener() {
@@ -166,16 +169,7 @@ public class PostService{
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Post post = document.toObject(Post.class);
-                        posts.add(post);
-                    }
-                    if (task.getResult().size() != 0) {
-                        mLastQueriedDocument = task.getResult().getDocuments()
-                                .get(task.getResult().size() - 1);
-                    }
-                    // TODO: Recyclerview notifydatasetchanged
-
+                    processQueryPosts(task, posts);
                     liveDataPost.postValue(posts);
                 }
             }
@@ -193,5 +187,41 @@ public class PostService{
 
     public ArrayList<Post> getPinnedPostsArray() {
         return pinnedPostsArray;
+    }
+
+    /**
+     * Returns list of posts matching the given date
+     */
+    public void refreshCalendarByDate(Date date){
+        final ArrayList posts = new ArrayList<>();
+        CollectionReference postsReference = firebaseFirestore.collection("posts");
+        Query postsQuery = postsReference
+                .whereEqualTo("user_id", currentUser)
+                .whereEqualTo("assignedDate", date);
+        postsQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    processQueryPosts(task, posts);
+                    calendarPosts.postValue(posts);
+                }
+            }
+        });
+    }
+
+    // To avoid code duplication
+    private void processQueryPosts(@NonNull Task<QuerySnapshot> task, ArrayList<Post> posts) {
+        for (QueryDocumentSnapshot document : task.getResult()) {
+            Post post = document.toObject(Post.class);
+            posts.add(post);
+        }
+        if (task.getResult().size() != 0) {
+            mLastQueriedDocument = task.getResult().getDocuments()
+                    .get(task.getResult().size() - 1);
+        }
+    }
+
+    public MutableLiveData<ArrayList<Post>> getCalendarPosts() {
+        return calendarPosts;
     }
 }
