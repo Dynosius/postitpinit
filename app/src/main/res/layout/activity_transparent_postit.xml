@@ -14,13 +14,13 @@
         <android.support.design.widget.TextInputLayout
             android:id="@+id/textInputArea"
             android:layout_width="match_parent"
-            android:layout_height="243dp"
+            android:layout_height="143dp"
             android:layout_marginTop="10dp">
 
             <android.support.design.widget.TextInputEditText
                 android:id="@+id/textInputEditedTextPostitNote"
                 android:layout_width="match_parent"
-                android:layout_height="231dp" />
+                android:layout_height="131dp" />
         </android.support.design.widget.TextInputLayout>
 
         <LinearLayout
@@ -44,6 +44,7 @@
                 android:layout_alignParentEnd="true"/>
 
         </LinearLayout>
+
 
     </LinearLayout>
 
