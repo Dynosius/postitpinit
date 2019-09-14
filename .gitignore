@@ -1,5 +1,6 @@
 *.iml
 .gradle
+/gradle
 /local.properties
 /.idea/libraries
 /.idea/modules.xml
@@ -10,4 +11,3 @@
 .externalNativeBuild
 /.idea/
 /google-services.json
-./.idea/
